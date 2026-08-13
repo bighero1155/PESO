@@ -32,7 +32,7 @@ const DOLE_PROGRAMS_MENU = [
   },
   {
     label: "GIP",
-    href: "#gip",
+    href: "/gip",
     children: [],
   },
   {

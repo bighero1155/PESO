@@ -27,6 +27,7 @@ import SraSchedules from "./pages/SraSchedules";
 import LraSchedules from "./pages/LraSchedules";
 import SpesPage from "./pages/SpesPage";
 import JobFairSchedules from "./pages/Jobfairschedules";
+import GipPage from "./pages/gip";
 
 // ---------------------------
 // PESO LOGO LOADING SCREEN
@@ -155,6 +156,7 @@ const router = createBrowserRouter([
   { path: "/lraschedules", element: <RouteLoader><LraSchedules /></RouteLoader> },
   { path: "/sraschedules", element: <RouteLoader><SraSchedules /></RouteLoader> },
   { path: "/spespage", element: <RouteLoader><SpesPage /></RouteLoader> },
+  { path: "/gip", element: <RouteLoader><GipPage /></RouteLoader> },
 
   {
     path: "/users",

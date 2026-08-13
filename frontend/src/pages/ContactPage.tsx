@@ -11,6 +11,36 @@ interface FormState {
   message: string;
 }
 
+// ── Apps Script endpoint ──────────────────────────────────────────────────────
+// Standalone Web App — see ContactPage.gs. Handles sheet write + confirmation
+// email to sender + notification email to staff, all in one request.
+
+const CONTACT_SUBMIT_URL =
+  "https://script.google.com/macros/s/AKfycbz7sj_I98XjVgLuPuiJAJhnyuZt8lASGVpTAFZyM-I7xZYFPnrTLgXwQ2zZnS4YOIdY/exec";
+
+async function submitContactForm(
+  form: FormState
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(CONTACT_SUBMIT_URL, {
+      method:  "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body:    JSON.stringify({
+        name:    form.name.trim(),
+        email:   form.email.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+      }),
+    });
+    const data = await res.json();
+
+    if (data.success) return { success: true };
+    return { success: false, error: data.error || "Something went wrong. Please try again." };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+}
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const INFO_CARDS = [
@@ -269,19 +299,26 @@ function MapAndForm() {
   const [form, setForm] = useState<FormState>({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setSubmitError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    // Simulate submission — wire up to your Laravel API as needed
-    setTimeout(() => {
-      setSubmitting(false);
+    setSubmitError(null);
+
+    const result = await submitContactForm(form);
+    setSubmitting(false);
+
+    if (result.success) {
       setSubmitted(true);
-    }, 1200);
+    } else {
+      setSubmitError(result.error || "Something went wrong. Please try again.");
+    }
   };
 
   const inputStyle: React.CSSProperties = {
@@ -460,6 +497,7 @@ function MapAndForm() {
                     fontFamily: "'Source Sans 3', sans-serif", lineHeight: 1.6,
                   }}>
                     Thank you for reaching out. Our team will get back to you within 1–2 business days.
+                    A confirmation has also been sent to your email.
                   </p>
                   <button
                     onClick={() => { setSubmitted(false); setForm({ name: "", email: "", subject: "", message: "" }); }}
@@ -475,6 +513,18 @@ function MapAndForm() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                  {submitError && (
+                    <div style={{
+                      background: "rgba(192,21,26,0.08)",
+                      border: "1.5px solid rgba(192,21,26,0.25)",
+                      borderRadius: 8, padding: "12px 16px",
+                      color: "#c0151a", fontSize: "0.85rem", fontWeight: 600,
+                      fontFamily: "'Source Sans 3', sans-serif",
+                    }}>
+                      {submitError}
+                    </div>
+                  )}
+
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <div>
                       <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#1a1d5e", marginBottom: 6, fontFamily: "'Source Sans 3', sans-serif", letterSpacing: 0.5 }}>

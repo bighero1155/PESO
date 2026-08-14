@@ -66,7 +66,7 @@ const INFO_CARDS = [
   {
     icon: "💬",
     label: "Text / SMS Hotline",
-    lines: ["0917 000 0000", "For quick inquiries"],
+    lines: ["0917 122 8172", "For quick inquiries"],
     href: "sms:+639170000000",
     cta: "Send a Text ↗",
   },

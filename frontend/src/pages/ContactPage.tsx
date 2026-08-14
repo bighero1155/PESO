@@ -64,6 +64,13 @@ const INFO_CARDS = [
     cta: "Call Now ↗",
   },
   {
+    icon: "💬",
+    label: "Text / SMS Hotline",
+    lines: ["0917 000 0000", "For quick inquiries"],
+    href: "sms:+639170000000",
+    cta: "Send a Text ↗",
+  },
+  {
     icon: "🕐",
     label: "Office Hours",
     lines: ["Monday – Friday", "8:00 AM – 5:00 PM", "(Closed on Holidays)"],
@@ -566,6 +573,16 @@ function MapAndForm() {
                       onFocus={e => (e.target.style.borderColor = "#c0151a")}
                       onBlur={e => (e.target.style.borderColor = "rgba(26,29,94,0.15)")}
                     >
+                      <option value="">Select a subject...</option>
+                      <option>Job Placement Inquiry</option>
+                      <option>TUPAD Program</option>
+                      <option>SPES Program</option>
+                      <option>Overseas Employment</option>
+                      <option>Job Fair Schedule</option>
+                      <option>Skills Training / TESDA</option>
+                      <option>Employer Registration</option>
+                      <option>General Inquiry</option>
+                      <option>Other</option>
                     </select>
                   </div>
 

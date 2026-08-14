@@ -55,7 +55,6 @@ const INFO_CARDS = [
     ],
     href: "https://maps.google.com/?q=Provincial+Capitol+Roxas+City+Capiz+Philippines",
     cta: "Get Directions ↗",
-    copyValue: null as string | null,
   },
   {
     icon: "📞",
@@ -63,18 +62,6 @@ const INFO_CARDS = [
     lines: ["(036) 620 3550"],
     href: "tel:+6336620 3550",
     cta: "Call Now ↗",
-    copyValue: null as string | null,
-  },
-  {
-    icon: "✉️",
-    label: "Email",
-    lines: ["pesocapiz@gmail.com"],
-    href: null,
-    cta: null,
-    // Instead of a mailto: link (redundant with the "Send a Message" form
-    // below), this card lets people copy the address to paste wherever
-    // they actually want to send from.
-    copyValue: "pesocapiz@gmail.com" as string | null,
   },
   {
     icon: "🕐",
@@ -82,7 +69,6 @@ const INFO_CARDS = [
     lines: ["Monday – Friday", "8:00 AM – 5:00 PM", "(Closed on Holidays)"],
     href: null,
     cta: null,
-    copyValue: null as string | null,
   },
   {
     icon: "👍",
@@ -90,7 +76,6 @@ const INFO_CARDS = [
     lines: ["PESO – CAPIZ Public", "Employment Service Office", "48K Followers"],
     href: "https://www.facebook.com/PESOCapiz",
     cta: "Visit Page ↗",
-    copyValue: null as string | null,
   },
   {
     icon: "⭐",
@@ -98,7 +83,6 @@ const INFO_CARDS = [
     lines: ["90% Recommend", "Based on 40 Reviews", "Open Now"],
     href: "https://www.facebook.com/PESOCapiz/reviews",
     cta: "Leave a Review ↗",
-    copyValue: null as string | null,
   },
 ];
 
@@ -245,21 +229,8 @@ function InfoCards() {
   );
 }
 
-function InfoCard({ icon, label, lines, href, cta, copyValue }: typeof INFO_CARDS[0]) {
+function InfoCard({ icon, label, lines, href, cta }: typeof INFO_CARDS[0]) {
   const [hovered, setHovered] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    if (!copyValue) return;
-    try {
-      await navigator.clipboard.writeText(copyValue);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard API unavailable/blocked — fail silently, address is still visible in the card.
-    }
-  };
-
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -310,21 +281,6 @@ function InfoCard({ icon, label, lines, href, cta, copyValue }: typeof INFO_CARD
         >
           {cta}
         </a>
-      )}
-      {copyValue && (
-        <button
-          onClick={handleCopy}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            marginTop: 14, background: "transparent", border: "none",
-            padding: 0, cursor: "pointer",
-            color: copied ? "#1a7a3a" : "#c0151a",
-            fontSize: "0.82rem", fontWeight: 700, letterSpacing: 0.3,
-            fontFamily: "'Source Sans 3', sans-serif",
-          }}
-        >
-          {copied ? "✓ Copied!" : "Copy Email ⧉"}
-        </button>
       )}
     </div>
   );

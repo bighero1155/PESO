@@ -87,7 +87,7 @@ const OTHER_PROGRAMS_MENU = [
 // ── Mobile Drawer ─────────────────────────────────────────────────────────────
 
 function MobileDrawer({
-  open, onClose, onLoginClick, onRegisterClick,
+  open, onClose,
 }: {
   open: boolean; onClose: () => void; onLoginClick: () => void; onRegisterClick: () => void;
 }) {
@@ -244,10 +244,17 @@ function MobileDrawer({
           <a href="/contact" onClick={onClose} style={{ display: "flex", alignItems: "center", padding: "15px 24px", color: "rgba(255,255,255,0.85)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 400, borderLeft: "3px solid transparent", borderBottom: "1px solid rgba(255,255,255,0.05)", letterSpacing: 0.2, transition: "all 0.15s" }}>Contact Us</a>
         </nav>
 
-        <div style={{ padding: "20px 20px 36px", display: "flex", flexDirection: "column", gap: 10, borderTop: "1px solid rgba(255,255,255,0.12)", flexShrink: 0 }}>
-          <button onClick={() => { onClose(); onLoginClick(); }} style={{ width: "100%", padding: "13px", borderRadius: 8, border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontSize: "0.92rem", fontWeight: 600, cursor: "pointer", letterSpacing: 0.3, fontFamily: "'Source Sans 3', sans-serif" }}>Log In</button>
-          <button onClick={() => { onClose(); onRegisterClick(); }} style={{ width: "100%", padding: "13px", borderRadius: 8, border: "none", background: "#f5c842", color: "#1a1d5e", fontSize: "0.92rem", fontWeight: 800, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 2px 12px rgba(245,200,66,0.4)", fontFamily: "'Source Sans 3', sans-serif" }}>Register</button>
-        </div>
+        {/*
+          Log In / Register buttons — hidden for now, not wired up to real
+          pages yet. onLoginClick / onRegisterClick are still threaded through
+          as props from PesoLanding, so uncomment this block whenever the
+          login/register flow is ready to go live.
+
+          <div style={{ padding: "20px 20px 36px", display: "flex", flexDirection: "column", gap: 10, borderTop: "1px solid rgba(255,255,255,0.12)", flexShrink: 0 }}>
+            <button onClick={() => { onClose(); onLoginClick(); }} style={{ width: "100%", padding: "13px", borderRadius: 8, border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontSize: "0.92rem", fontWeight: 600, cursor: "pointer", letterSpacing: 0.3, fontFamily: "'Source Sans 3', sans-serif" }}>Log In</button>
+            <button onClick={() => { onClose(); onRegisterClick(); }} style={{ width: "100%", padding: "13px", borderRadius: 8, border: "none", background: "#f5c842", color: "#1a1d5e", fontSize: "0.92rem", fontWeight: 800, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 2px 12px rgba(245,200,66,0.4)", fontFamily: "'Source Sans 3', sans-serif" }}>Register</button>
+          </div>
+        */}
       </div>
     </>
   );
@@ -842,13 +849,19 @@ export default function PesoNavbar({ onLoginClick, onRegisterClick }: { onLoginC
 
             {isMobile && <div style={{ flex: 1 }} />}
 
-            {/* Desktop auth buttons */}
-            {!isMobile && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 0 0 12px", borderLeft: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }}>
-                <button onClick={onLoginClick} style={{ display: "flex", alignItems: "center", gap: 6, color: "white", background: "transparent", fontSize: "0.8rem", fontWeight: 600, padding: "6px 14px", borderRadius: 6, border: "1.5px solid rgba(255,255,255,0.45)", letterSpacing: 0.3, transition: "all 0.2s", whiteSpace: "nowrap", cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.8)"; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.45)"; }}>Log In</button>
-                <button onClick={onRegisterClick} style={{ display: "flex", alignItems: "center", gap: 6, background: "#f5c842", color: "#1a1d5e", border: "1.5px solid transparent", fontSize: "0.8rem", fontWeight: 800, padding: "6px 16px", borderRadius: 6, letterSpacing: 0.3, boxShadow: "0 2px 8px rgba(0,0,0,0.2)", transition: "all 0.2s", whiteSpace: "nowrap", cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = "#ffe066"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.25)"; e.currentTarget.style.transform = "translateY(-1px)"; }} onMouseLeave={e => { e.currentTarget.style.background = "#f5c842"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)"; e.currentTarget.style.transform = "translateY(0)"; }}>Register</button>
-              </div>
-            )}
+            {/*
+              Desktop Log In / Register buttons — hidden for now, not wired up
+              to real pages yet. onLoginClick / onRegisterClick are still
+              threaded through as props from PesoLanding, so uncomment this
+              block whenever the login/register flow is ready to go live.
+
+              {!isMobile && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 0 0 12px", borderLeft: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }}>
+                  <button onClick={onLoginClick} style={{ display: "flex", alignItems: "center", gap: 6, color: "white", background: "transparent", fontSize: "0.8rem", fontWeight: 600, padding: "6px 14px", borderRadius: 6, border: "1.5px solid rgba(255,255,255,0.45)", letterSpacing: 0.3, transition: "all 0.2s", whiteSpace: "nowrap", cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.8)"; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.45)"; }}>Log In</button>
+                  <button onClick={onRegisterClick} style={{ display: "flex", alignItems: "center", gap: 6, background: "#f5c842", color: "#1a1d5e", border: "1.5px solid transparent", fontSize: "0.8rem", fontWeight: 800, padding: "6px 16px", borderRadius: 6, letterSpacing: 0.3, boxShadow: "0 2px 8px rgba(0,0,0,0.2)", transition: "all 0.2s", whiteSpace: "nowrap", cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = "#ffe066"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.25)"; e.currentTarget.style.transform = "translateY(-1px)"; }} onMouseLeave={e => { e.currentTarget.style.background = "#f5c842"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)"; e.currentTarget.style.transform = "translateY(0)"; }}>Register</button>
+                </div>
+              )}
+            */}
 
             {/* Mobile hamburger */}
             {isMobile && (

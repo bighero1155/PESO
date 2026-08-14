@@ -566,16 +566,6 @@ function MapAndForm() {
                       onFocus={e => (e.target.style.borderColor = "#c0151a")}
                       onBlur={e => (e.target.style.borderColor = "rgba(26,29,94,0.15)")}
                     >
-                      <option value="">Select a subject...</option>
-                      <option>Job Placement Inquiry</option>
-                      <option>TUPAD Program</option>
-                      <option>SPES Program</option>
-                      <option>Overseas Employment</option>
-                      <option>Job Fair Schedule</option>
-                      <option>Skills Training / TESDA</option>
-                      <option>Employer Registration</option>
-                      <option>General Inquiry</option>
-                      <option>Other</option>
                     </select>
                   </div>
 

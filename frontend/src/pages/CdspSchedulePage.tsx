@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface CalendarEvent {
+interface CdspEvent {
   date: string;      // "MM-DD" repeats yearly, "YYYY-MM-DD" one-time
-  title: string;
-  description: string;
-  type: "deadline" | "opening" | "reminder" | "holiday";
+  institution: string;
+  time: string;
+  participants: string;
+  topics: string[];
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -16,112 +17,41 @@ const PESO_NAVY = "#1a1d5e";
 const PESO_RED  = "#c0151a";
 const PESO_GOLD = "#e8a800";
 
-const TYPE_STYLE: Record<CalendarEvent["type"], { bg: string; color: string; dot: string; label: string }> = {
-  deadline: { bg: "#fff1f2", color: "#c0151a", dot: "#c0151a", label: "Deadline" },
-  opening:  { bg: "#f0fdf4", color: "#15803d", dot: "#15803d", label: "Opening"  },
-  reminder: { bg: "#eff6ff", color: "#1d4ed8", dot: "#1d4ed8", label: "Reminder" },
-  holiday:  { bg: "rgba(232,168,0,0.12)", color: "#92660a", dot: "#e8a800", label: "Holiday" },
-};
-
 // ─────────────────────────────────────────────────────────────────────────────
-// ✏️  HOW TO ADD / EDIT REMINDERS
+// ✏️  HOW TO ADD / EDIT ACTIVITIES
 //
-//  Each entry has 4 fields:
-//    date        → "MM-DD"      repeats every year  (e.g. "05-01" = every May 1)
-//                  "YYYY-MM-DD" one-time only        (e.g. "2026-04-10")
-//    title       → Short name shown on the calendar cell
-//    description → Full text shown inside the popup modal
-//    type        → One of: "opening" | "deadline" | "reminder" | "holiday"
+//  Each entry has 5 fields:
+//    date         → "MM-DD"      repeats every year  (e.g. "05-01" = every May 1)
+//                   "YYYY-MM-DD" one-time only        (e.g. "2026-09-15")
+//    institution  → Name of the institution/office hosting the activity
+//    time         → e.g. "9:00 AM – 12:00 PM"
+//    participants → e.g. "15 GIP Interns"
+//    topics       → List of topics discussed/requested
 //
-//  EXAMPLES:
-//    { date: "03-20", title: "JobStart Orientation", description: "...", type: "reminder" }
-//    { date: "2026-07-04", title: "Special Job Fair", description: "...", type: "reminder" }
+//  EXAMPLE:
+//    {
+//      date: "2026-09-15",
+//      institution: "Roxas City Hall — Human Resource Management Office",
+//      time: "9:00 AM – 12:00 PM",
+//      participants: "15 GIP Interns",
+//      topics: ["Orientation on Government Office Protocols", "Data Privacy Act Overview"],
+//    }
 //
 //  To DELETE an entry just remove the whole { } block.
 //  To ADD an entry just append a new { } block inside the array below.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STATIC_EVENTS: CalendarEvent[] = [
-  // ── SPES ──────────────────────────────────────────────────────────────────
+const STATIC_EVENTS: CdspEvent[] = [
   {
-    date: "01-05",
-    title: "SPES Application Opens",
-    description: "Special Program for Employment of Students application period begins. Eligible students may submit requirements to the PESO office.",
-    type: "opening",
-  },
-  {
-    date: "02-28",
-    title: "SPES Application Deadline",
-    description: "Last day to submit SPES applications for the summer cycle. Late applications will not be accepted.",
-    type: "deadline",
-  },
-  {
-    date: "06-01",
-    title: "SPES Christmas Cycle Opens",
-    description: "SPES application period for the Christmas break employment cycle begins.",
-    type: "opening",
-  },
-  {
-    date: "09-30",
-    title: "SPES Christmas Cycle Deadline",
-    description: "Deadline for SPES Christmas cycle applications.",
-    type: "deadline",
-  },
-
-  // ── GIP ───────────────────────────────────────────────────────────────────
-  {
-    date: "02-01",
-    title: "GIP Application Opens",
-    description: "Government Internship Program application period starts. Open to currently enrolled college students.",
-    type: "opening",
-  },
-  {
-    date: "03-15",
-    title: "GIP Application Deadline",
-    description: "Last day to file GIP applications. Slots are limited — submit early.",
-    type: "deadline",
-  },
-
-  // ── TUPAD ─────────────────────────────────────────────────────────────────
-  {
-    date: "03-01",
-    title: "TUPAD Registration",
-    description: "Tulong Panghanapbuhay sa Ating Disadvantaged/Displaced Workers registration opens for informal economy workers.",
-    type: "opening",
-  },
-
-  // ── Job Fairs ─────────────────────────────────────────────────────────────
-  {
-    date: "04-25",
-    title: "PESO Job Fair",
-    description: "Annual PESO Roxas City Job Fair. Hundreds of employers expected. Bring updated resume and valid ID.",
-    type: "reminder",
-  },
-  {
-    date: "10-15",
-    title: "PESO Job Fair (2nd)",
-    description: "Second annual job fair of the year. Open to all job seekers. No registration fee.",
-    type: "reminder",
-  },
-
-  // ── Holidays ──────────────────────────────────────────────────────────────
-  {
-    date: "05-01",
-    title: "Labor Day",
-    description: "Philippine Labor Day — PESO office closed. Public holiday.",
-    type: "holiday",
-  },
-  {
-    date: "12-25",
-    title: "Christmas Day",
-    description: "PESO office closed.",
-    type: "holiday",
-  },
-  {
-    date: "01-01",
-    title: "New Year's Day",
-    description: "PESO office closed.",
-    type: "holiday",
+    date: "2026-09-15",
+    institution: "Roxas City Hall — Human Resource Management Office",
+    time: "9:00 AM – 12:00 PM",
+    participants: "15 GIP Interns",
+    topics: [
+      "Orientation on Government Office Protocols",
+      "Data Privacy Act Overview",
+      "Basic Office Systems Training",
+    ],
   },
 ];
 
@@ -138,8 +68,8 @@ const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const getEventsForMonth = (
   year: number,
   month: number,
-): (CalendarEvent & { day: number })[] => {
-  const results: (CalendarEvent & { day: number })[] = [];
+): (CdspEvent & { day: number })[] => {
+  const results: (CdspEvent & { day: number })[] = [];
 
   STATIC_EVENTS.forEach((ev) => {
     let day: number | null = null;
@@ -172,7 +102,7 @@ function DayModal({
   day: number;
   month: number;
   year: number;
-  events: (CalendarEvent & { day: number })[];
+  events: (CdspEvent & { day: number })[];
   onClose: () => void;
 }) {
   return (
@@ -210,7 +140,7 @@ function DayModal({
                 color: PESO_GOLD, fontSize: "0.68rem", fontWeight: 700,
                 letterSpacing: 2, textTransform: "uppercase", margin: "0 0 3px",
               }}>
-                CDSP Reminders
+                CDSP Activity
               </p>
               <h2 style={{
                 fontFamily: "'Playfair Display', serif",
@@ -221,51 +151,65 @@ function DayModal({
             </div>
             <button
               onClick={onClose}
+              aria-label="Close"
               style={{
                 background: "rgba(255,255,255,0.15)",
                 border: "1px solid rgba(255,255,255,0.3)",
                 borderRadius: "50%", width: 32, height: 32,
                 color: "white", cursor: "pointer", fontSize: "1rem",
                 display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
               }}
             >✕</button>
           </div>
 
           {/* Events list */}
           <div style={{ overflowY: "auto", flex: 1, padding: "20px 24px" }}>
-            {events.map((ev, i) => {
-              const ts = TYPE_STYLE[ev.type];
-              return (
-                <div key={i} style={{
-                  background: ts.bg, borderRadius: 10,
-                  padding: "14px 16px", marginBottom: 12,
-                  borderLeft: `4px solid ${ts.dot}`,
+            {events.map((ev, i) => (
+              <div
+                key={i}
+                style={{
+                  paddingBottom: i === events.length - 1 ? 0 : 20,
+                  marginBottom:  i === events.length - 1 ? 0 : 20,
+                  borderBottom:  i === events.length - 1 ? "none" : "1.5px solid rgba(26,29,94,0.08)",
+                }}
+              >
+                <h3 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  color: PESO_NAVY, fontSize: "1.1rem", margin: "0 0 14px", lineHeight: 1.3,
                 }}>
-                  <span style={{
-                    fontSize: "0.65rem", fontWeight: 700,
-                    letterSpacing: 1, textTransform: "uppercase",
-                    color: ts.color,
-                    background: "rgba(255,255,255,0.6)",
-                    padding: "2px 8px", borderRadius: 10,
-                    display: "inline-block", marginBottom: 6,
-                  }}>
-                    {ts.label}
-                  </span>
-                  <p style={{
-                    fontWeight: 700, color: PESO_NAVY,
-                    fontSize: "0.92rem", margin: "0 0 5px",
-                  }}>
-                    {ev.title}
-                  </p>
-                  <p style={{
-                    fontSize: "0.84rem", color: "#5a5a7a",
-                    margin: 0, lineHeight: 1.6,
-                  }}>
-                    {ev.description}
-                  </p>
+                  {ev.institution}
+                </h3>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: "1rem" }}>🕐</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>Time</p>
+                      <p style={{ margin: "2px 0 0", fontSize: "0.88rem", color: "#5a5a7a" }}>{ev.time}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: "1rem" }}>👥</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>Participants</p>
+                      <p style={{ margin: "2px 0 0", fontSize: "0.88rem", color: "#5a5a7a" }}>{ev.participants}</p>
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
+
+                <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
+                  Topics Requested
+                </p>
+                <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
+                  {ev.topics.map((topic, idx) => (
+                    <li key={idx} style={{ fontSize: "0.88rem", color: "#5a5a7a", lineHeight: 1.5 }}>
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
           {/* Footer */}
@@ -357,7 +301,6 @@ const CdspSchedulePage: React.FC = () => {
           from { opacity: 0; transform: scale(0.96) translateY(8px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
       <div style={{
@@ -416,9 +359,8 @@ const CdspSchedulePage: React.FC = () => {
               fontWeight: 300, margin: 0,
               maxWidth: isMobile ? "100%" : 520,
             }}>
-              Key dates for PESO programs — application periods, deadlines,
-              job fairs, and public holidays. Click any highlighted date to
-              view details.
+              Scheduled CDSP activities — click any highlighted date to view
+              the institution, time, participants, and topics requested.
             </p>
           </div>
         </div>
@@ -428,43 +370,6 @@ const CdspSchedulePage: React.FC = () => {
           maxWidth: 1100, margin: "0 auto",
           padding: isMobile ? "24px 12px" : "40px 24px",
         }}>
-
-          {/* Legend */}
-          <div style={{
-            display: "flex", gap: isMobile ? 12 : 20,
-            flexWrap: isMobile ? "nowrap" : "wrap",
-            overflowX: isMobile ? "auto" : "visible",
-            marginBottom: 24, alignItems: "center",
-            paddingBottom: isMobile ? 4 : 0,
-          }}>
-            <span style={{
-              fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8",
-              letterSpacing: 1, textTransform: "uppercase", flexShrink: 0,
-            }}>
-              Type:
-            </span>
-            {Object.entries(TYPE_STYLE).map(([key, val]) => (
-              <span key={key} style={{
-                display: "inline-flex", alignItems: "center", gap: 5,
-                fontSize: "0.78rem", fontWeight: 600,
-                color: val.color, flexShrink: 0,
-              }}>
-                <span style={{
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: val.dot, display: "inline-block",
-                }} />
-                {val.label}
-              </span>
-            ))}
-            {!isMobile && (
-              <span style={{
-                marginLeft: "auto", fontSize: "0.8rem",
-                color: "#94a3b8", fontStyle: "italic",
-              }}>
-                Click any highlighted date to view details
-              </span>
-            )}
-          </div>
 
           {/* ── Wall Calendar ── */}
           <div style={{
@@ -482,6 +387,7 @@ const CdspSchedulePage: React.FC = () => {
             }}>
               <button
                 onClick={prevMonth}
+                aria-label="Previous month"
                 style={{
                   background: "rgba(255,255,255,0.12)",
                   border: "1px solid rgba(255,255,255,0.25)",
@@ -501,6 +407,7 @@ const CdspSchedulePage: React.FC = () => {
 
               <button
                 onClick={nextMonth}
+                aria-label="Next month"
                 style={{
                   background: "rgba(255,255,255,0.12)",
                   border: "1px solid rgba(255,255,255,0.25)",
@@ -600,52 +507,38 @@ const CdspSchedulePage: React.FC = () => {
                       {day}
                     </div>
 
-                    {/* Colored dots for events */}
+                    {/* Marker dot for days with an activity */}
                     {hasEvs && (
-                      <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-                        {dayEvs.slice(0, 3).map((ev, idx) => (
-                          <span key={idx} style={{
-                            display: "block",
-                            width: isMobile ? 5 : 6,
-                            height: isMobile ? 5 : 6,
-                            borderRadius: "50%",
-                            background: TYPE_STYLE[ev.type].dot,
-                            flexShrink: 0,
-                          }} />
-                        ))}
-                        {dayEvs.length > 3 && (
-                          <span style={{
-                            fontSize: "0.5rem", color: "#94a3b8",
-                            fontWeight: 700, lineHeight: 1,
-                          }}>
-                            +{dayEvs.length - 3}
-                          </span>
-                        )}
-                      </div>
+                      <span style={{
+                        display: "block",
+                        width: isMobile ? 5 : 6,
+                        height: isMobile ? 5 : 6,
+                        borderRadius: "50%",
+                        background: PESO_RED,
+                      }} />
                     )}
 
-                    {/* Event title pills — desktop only */}
+                    {/* Institution name pill — desktop only */}
                     {hasEvs && !isMobile && (
-                      <div style={{ marginTop: 2 }}>
-                        {dayEvs.slice(0, 2).map((ev, idx) => (
+                      <div style={{ marginTop: 4 }}>
+                        {dayEvs.slice(0, 1).map((ev, idx) => (
                           <div key={idx} style={{
-                            background: TYPE_STYLE[ev.type].bg,
-                            color: TYPE_STYLE[ev.type].color,
+                            background: "#fff1f2",
+                            color: PESO_RED,
                             fontSize: "0.6rem", fontWeight: 600,
                             borderRadius: 3, padding: "1px 4px",
-                            marginBottom: 2,
                             whiteSpace: "nowrap", overflow: "hidden",
                             textOverflow: "ellipsis", maxWidth: "100%",
                           }}>
-                            {ev.title}
+                            {ev.institution}
                           </div>
                         ))}
-                        {dayEvs.length > 2 && (
+                        {dayEvs.length > 1 && (
                           <div style={{
                             fontSize: "0.6rem", color: "#94a3b8",
-                            fontWeight: 600, paddingLeft: 2,
+                            fontWeight: 600, paddingLeft: 2, marginTop: 2,
                           }}>
-                            +{dayEvs.length - 2} more
+                            +{dayEvs.length - 1} more
                           </div>
                         )}
                       </div>
@@ -655,81 +548,6 @@ const CdspSchedulePage: React.FC = () => {
               })}
             </div>
 
-            {/* ── This month's agenda list below the grid ── */}
-            {monthEvents.length > 0 && (
-              <div style={{
-                borderTop: "2px solid #f0f0f4",
-                padding: isMobile ? "16px 12px" : "20px 24px",
-              }}>
-                <p style={{
-                  fontSize: "0.72rem", fontWeight: 700, color: "#94a3b8",
-                  letterSpacing: 2, textTransform: "uppercase", marginBottom: 14,
-                }}>
-                  This Month — {monthEvents.length} reminder{monthEvents.length > 1 ? "s" : ""}
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {monthEvents.map((ev, i) => {
-                    const ts = TYPE_STYLE[ev.type];
-                    return (
-                      <div
-                        key={i}
-                        onClick={() => setSelectedDay(ev.day)}
-                        style={{
-                          display: "flex", alignItems: "flex-start", gap: 12,
-                          padding: "12px 14px", borderRadius: 10,
-                          background: ts.bg, cursor: "pointer",
-                          borderLeft: `3px solid ${ts.dot}`,
-                          transition: "opacity 0.15s",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                      >
-                        {/* Day number badge */}
-                        <div style={{
-                          minWidth: 36, height: 36, borderRadius: 8,
-                          background: ts.dot,
-                          display: "flex", alignItems: "center",
-                          justifyContent: "center",
-                          color: "white", fontWeight: 800,
-                          fontSize: "0.8rem", flexShrink: 0,
-                        }}>
-                          {ev.day}
-                        </div>
-
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{
-                            fontSize: "0.65rem", fontWeight: 700,
-                            letterSpacing: 1, textTransform: "uppercase",
-                            color: ts.color, display: "block", marginBottom: 2,
-                          }}>
-                            {ts.label}
-                          </span>
-                          <p style={{
-                            fontWeight: 700, color: PESO_NAVY,
-                            fontSize: "0.88rem", margin: "0 0 2px",
-                            whiteSpace: "nowrap", overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}>
-                            {ev.title}
-                          </p>
-                          <p style={{
-                            fontSize: "0.78rem", color: "#5a5a7a",
-                            margin: 0, lineHeight: 1.5,
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical" as const,
-                            overflow: "hidden",
-                          }}>
-                            {ev.description}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Empty month state */}
             {monthEvents.length === 0 && (
               <div style={{
@@ -738,7 +556,7 @@ const CdspSchedulePage: React.FC = () => {
               }}>
                 <div style={{ fontSize: "2rem", marginBottom: 8 }}>📭</div>
                 <p style={{ fontSize: "0.88rem", margin: 0 }}>
-                  No CDSP reminders for this month.
+                  No CDSP activities scheduled for this month.
                 </p>
               </div>
             )}

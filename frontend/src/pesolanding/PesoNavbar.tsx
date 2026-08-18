@@ -40,6 +40,11 @@ const DOLE_PROGRAMS_MENU = [
     href: "#jobstart",
     children: [],
   },
+    {
+    label: "TUPAD",
+    href: "#tupad",
+    children: [],
+  },
 ];
 
 // Core Services — flat accordion list matching the sidebar/dropdown in the image.

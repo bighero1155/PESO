@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import pesoLogo from "/assets/peso-logo.png";
@@ -18,427 +18,357 @@ const COLORS = {
   cream:     "#fdf8f0",
 };
 
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_LABELS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface GipPhoto {
-  src: string;
-  alt: string;
-}
-
-interface GipFolder {
+interface GipEvent {
   id: string;
-  name: string;
-  photos: GipPhoto[];
-  /** How many empty placeholder tiles to render when `photos` is still empty. */
-  placeholderCount: number;
+  /** ISO date string, e.g. "2026-09-15" */
+  date: string;
+  institution: string;
+  time: string;
+  participants: string;
+  topics: string[];
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
-// Drop real photos into the `photos` array for each folder once you have them,
-// e.g. { src: "/assets/gip-orientation-1.jpg", alt: "Orientation briefing" }.
-// Until then, `placeholderCount` controls how many empty slots show up so the
-// folder doesn't look broken.
+// Add more events here — each one just needs an id, date (YYYY-MM-DD),
+// institution, time, participants, and a list of topics. The calendar below
+// picks these up automatically: any date with an event gets highlighted and
+// becomes clickable.
 
-const GIP_FOLDERS: GipFolder[] = [
+const GIP_EVENTS: GipEvent[] = [
   {
-    id: "orientation",
-    name: "GIP ORIENTATION",
-    photos: [],
-    placeholderCount: 6,
-  },
-  {
-    id: "deployment",
-    name: "GIP DEPLOYMENT TO PARTNER AGENCIES",
-    photos: [],
-    placeholderCount: 6,
-  },
-  {
-    id: "beneficiaries-in-action",
-    name: "GIP BENEFICIARIES IN ACTION",
-    photos: [],
-    placeholderCount: 8,
-  },
-  {
-    id: "capacity-building",
-    name: "GIP CAPACITY BUILDING ACTIVITIES",
-    photos: [],
-    placeholderCount: 6,
-  },
-  {
-    id: "payout",
-    name: "GIP PAYOUT",
-    photos: [],
-    placeholderCount: 6,
+    id: "sample-1",
+    date: "2026-09-15",
+    institution: "Roxas City Hall — Human Resource Management Office",
+    time: "9:00 AM – 12:00 PM",
+    participants: "15 GIP Interns",
+    topics: [
+      "Orientation on Government Office Protocols",
+      "Data Privacy Act Overview",
+      "Basic Office Systems Training",
+    ],
   },
 ];
 
-// ── Lightbox (portal — escapes any overflow:hidden parent) ────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function ImageLightbox({
-  src,
-  alt,
-  folderName,
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function dateKey(year: number, monthIndex: number, day: number): string {
+  return `${year}-${pad2(monthIndex + 1)}-${pad2(day)}`;
+}
+
+function buildEventsByDate(events: GipEvent[]): Record<string, GipEvent[]> {
+  const map: Record<string, GipEvent[]> = {};
+  for (const ev of events) {
+    if (!map[ev.date]) map[ev.date] = [];
+    map[ev.date].push(ev);
+  }
+  return map;
+}
+
+function formatFullDate(iso: string): string {
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" });
+}
+
+// ── Event detail modal (portal — escapes any overflow:hidden parent) ──────────
+
+function EventDetailModal({
+  events,
+  dateIso,
   onClose,
 }: {
-  src: string;
-  alt: string;
-  folderName: string;
+  events: GipEvent[];
+  dateIso: string;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   return createPortal(
     <div
       onClick={onClose}
       style={{
         position:       "fixed",
         inset:          0,
-        background:     "rgba(10,11,38,0.92)",
+        background:     "rgba(10,11,38,0.55)",
         display:        "flex",
         alignItems:     "center",
         justifyContent: "center",
         zIndex:         9999,
-        padding:        "48px 24px",
+        padding:        "24px",
         animation:      "lbFadeIn 0.18s ease both",
-        cursor:         "zoom-out",
       }}
     >
-      <button
-        onClick={e => { e.stopPropagation(); onClose(); }}
-        aria-label="Close"
+      <div
+        onClick={e => e.stopPropagation()}
         style={{
-          position:       "fixed",
-          top:            20,
-          right:          24,
-          width:          42,
-          height:         42,
-          borderRadius:   "50%",
-          border:         "1.5px solid rgba(255,255,255,0.3)",
-          background:     "rgba(255,255,255,0.08)",
-          color:          "white",
-          fontSize:       "1.3rem",
-          cursor:         "pointer",
-          display:        "flex",
-          alignItems:     "center",
-          justifyContent: "center",
-          transition:     "background 0.15s",
-          zIndex:         10000,
+          background:    "white",
+          borderRadius:  16,
+          maxWidth:      520,
+          width:         "100%",
+          maxHeight:     "85vh",
+          overflowY:     "auto",
+          boxShadow:     "0 24px 80px rgba(0,0,0,0.35)",
+          animation:     "lbPopIn 0.2s ease both",
+          fontFamily:    "'Source Sans 3', sans-serif",
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
       >
-        ✕
-      </button>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-        <img
-          src={src}
-          alt={alt}
-          onClick={e => e.stopPropagation()}
-          style={{
-            maxWidth:     "90vw",
-            maxHeight:    "82vh",
-            objectFit:    "contain",
-            borderRadius: 10,
-            boxShadow:    "0 24px 80px rgba(0,0,0,0.5)",
-            cursor:       "default",
-            display:      "block",
-            animation:    "lbPopIn 0.2s ease both",
-          }}
-        />
-        <span style={{
-          fontSize:      "0.7rem",
-          fontWeight:    800,
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          color:         COLORS.gold,
-          textAlign:     "center",
+        <div style={{
+          background: COLORS.navy,
+          padding:    "20px 24px",
+          display:    "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
         }}>
-          {folderName}
-        </span>
+          <div>
+            <p style={{
+              color: COLORS.gold, fontWeight: 800, fontSize: "0.7rem",
+              letterSpacing: 3, textTransform: "uppercase", margin: 0,
+            }}>
+              GIP Activity
+            </p>
+            <p style={{ color: "white", fontWeight: 700, fontSize: "1rem", margin: "4px 0 0" }}>
+              {formatFullDate(dateIso)}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              width: 34, height: 34, borderRadius: "50%",
+              border: "1.5px solid rgba(255,255,255,0.3)",
+              background: "rgba(255,255,255,0.08)",
+              color: "white", fontSize: "1rem", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={{ padding: "24px" }}>
+          {events.map((ev, i) => (
+            <div
+              key={ev.id}
+              style={{
+                paddingBottom: i === events.length - 1 ? 0 : 20,
+                marginBottom:  i === events.length - 1 ? 0 : 20,
+                borderBottom:  i === events.length - 1 ? "none" : "1.5px solid rgba(26,29,94,0.08)",
+              }}
+            >
+              <h3 style={{
+                fontFamily: "'Playfair Display', serif",
+                color: COLORS.navy, fontSize: "1.15rem", margin: "0 0 14px", lineHeight: 1.3,
+              }}>
+                {ev.institution}
+              </h3>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: "1rem" }}>🕐</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: COLORS.red }}>Time</p>
+                    <p style={{ margin: "2px 0 0", fontSize: "0.9rem", color: COLORS.bodyText }}>{ev.time}</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: "1rem" }}>👥</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: COLORS.red }}>Participants</p>
+                    <p style={{ margin: "2px 0 0", fontSize: "0.9rem", color: COLORS.bodyText }}>{ev.participants}</p>
+                  </div>
+                </div>
+              </div>
+
+              <p style={{ margin: "0 0 8px", fontSize: "0.7rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: COLORS.red }}>
+                Topics Discussed
+              </p>
+              <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
+                {ev.topics.map((topic, idx) => (
+                  <li key={idx} style={{ fontSize: "0.9rem", color: COLORS.bodyText, lineHeight: 1.5 }}>
+                    {topic}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </div>,
     document.body
   );
 }
 
-// ── Single photo cell ──────────────────────────────────────────────────────────
+// ── Calendar grid ─────────────────────────────────────────────────────────────
 
-function PhotoCell({
-  photo,
-  onOpenLightbox,
+function EventCalendar({
+  isMobile,
+  eventsByDate,
+  onSelectDate,
 }: {
-  photo: GipPhoto;
-  onOpenLightbox: (photo: GipPhoto) => void;
+  isMobile: boolean;
+  eventsByDate: Record<string, GipEvent[]>;
+  onSelectDate: (dateIso: string) => void;
 }) {
-  const [hovered, setHovered] = useState(false);
+  const today = new Date();
+  const firstEventDate = GIP_EVENTS.length > 0 ? new Date(GIP_EVENTS[0].date + "T00:00:00") : today;
 
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={() => onOpenLightbox(photo)}
-      style={{
-        borderRadius: 8,
-        overflow:     "hidden",
-        aspectRatio:  "4/3",
-        position:     "relative",
-        boxShadow:    hovered ? "0 6px 20px rgba(26,29,94,0.18)" : "0 2px 8px rgba(26,29,94,0.07)",
-        transform:    hovered ? "scale(1.03)" : "scale(1)",
-        transition:   "box-shadow 0.18s, transform 0.18s",
-        cursor:       "zoom-in",
-      }}
-    >
-      <img
-        src={photo.src}
-        alt={photo.alt}
-        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-      />
-      <div style={{
-        position:       "absolute",
-        top:            8,
-        right:          8,
-        width:          30,
-        height:         30,
-        borderRadius:   "50%",
-        background:     "rgba(10,11,38,0.5)",
-        color:          "white",
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-        fontSize:       "0.85rem",
-        opacity:        hovered ? 1 : 0,
-        transition:     "opacity 0.15s",
-        pointerEvents:  "none",
-      }}>
-        🔍
-      </div>
-    </div>
-  );
-}
+  const [viewYear, setViewYear]   = useState(firstEventDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(firstEventDate.getMonth()); // 0-based
 
-// ── Placeholder cell (shown until real photos are added) ──────────────────────
+  const firstOfMonth   = new Date(viewYear, viewMonth, 1);
+  const startWeekday   = firstOfMonth.getDay();
+  const daysInMonth    = new Date(viewYear, viewMonth + 1, 0).getDate();
 
-function PlaceholderCell() {
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < startWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const goPrevMonth = () => {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
+    else { setViewMonth(m => m - 1); }
+  };
+  const goNextMonth = () => {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); }
+    else { setViewMonth(m => m + 1); }
+  };
+
+  const isToday = (day: number) =>
+    day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
+
   return (
     <div style={{
-      borderRadius:   8,
-      overflow:       "hidden",
-      aspectRatio:    "4/3",
-      display:        "flex",
-      flexDirection:  "column",
-      alignItems:     "center",
-      justifyContent: "center",
-      gap:            6,
-      background:     "rgba(26,29,94,0.03)",
-      border:         "1.5px dashed rgba(26,29,94,0.14)",
+      background:   "white",
+      borderRadius: 16,
+      border:       "1.5px solid rgba(26,29,94,0.10)",
+      boxShadow:    "0 4px 24px rgba(26,29,94,0.06)",
+      overflow:     "hidden",
+      animation:    "fadeUp 0.3s ease both",
     }}>
-      <span style={{ fontSize: "1.4rem", opacity: 0.3 }}>🖼️</span>
-      <span style={{ fontSize: "0.62rem", fontWeight: 700, color: COLORS.mutedText, letterSpacing: 0.5, textAlign: "center", padding: "0 8px" }}>
-        Photo coming soon
-      </span>
-    </div>
-  );
-}
-
-// ── Folder card (shown in the main grid) ───────────────────────────────────────
-
-function FolderCard({
-  folder,
-  onOpen,
-}: {
-  folder: GipFolder;
-  onOpen: (id: string) => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const count = folder.photos.length;
-
-  return (
-    <button
-      onClick={() => onOpen(folder.id)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display:       "flex",
-        flexDirection: "column",
-        alignItems:    "flex-start",
-        gap:           14,
-        textAlign:     "left",
-        width:         "100%",
-        background:    "white",
-        border:        `1.5px solid ${hovered ? COLORS.navy : "rgba(26,29,94,0.10)"}`,
-        borderRadius:  14,
-        padding:       "22px 20px",
-        cursor:        "pointer",
-        boxShadow:     hovered ? "0 10px 28px rgba(26,29,94,0.14)" : "0 2px 10px rgba(26,29,94,0.06)",
-        transform:     hovered ? "translateY(-3px)" : "translateY(0)",
-        transition:    "box-shadow 0.18s, transform 0.18s, border-color 0.18s",
-        fontFamily:    "'Source Sans 3', sans-serif",
-      }}
-    >
+      {/* Month nav header */}
       <div style={{
-        width:          48,
-        height:         48,
-        borderRadius:   10,
-        background:     hovered ? COLORS.navy : "rgba(26,29,94,0.06)",
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-        fontSize:       "1.4rem",
-        transition:     "background 0.18s",
+        background: COLORS.navy,
+        padding:    isMobile ? "16px 16px" : "18px 24px",
+        display:    "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
       }}>
-        {hovered ? "📂" : "📁"}
-      </div>
-
-      <div>
-        <h3 style={{
-          margin:        0,
-          fontSize:      "0.92rem",
-          fontWeight:    800,
-          color:         COLORS.navy,
-          lineHeight:    1.4,
-          letterSpacing: 0.2,
-        }}>
-          {folder.name}
-        </h3>
-        <span style={{
-          display:    "inline-block",
-          marginTop:  8,
-          fontSize:   "0.72rem",
-          fontWeight: 700,
-          color:      count > 0 ? COLORS.greenText : COLORS.mutedText,
-        }}>
-          {count > 0 ? `${count} photo${count === 1 ? "" : "s"}` : "No photos yet"}
-        </span>
-      </div>
-    </button>
-  );
-}
-
-// ── Folder grid (top-level view) ────────────────────────────────────────────────
-
-function FolderGrid({
-  folders,
-  isMobile,
-  onOpen,
-}: {
-  folders: GipFolder[];
-  isMobile: boolean;
-  onOpen: (id: string) => void;
-}) {
-  return (
-    <div style={{
-      display:             "grid",
-      gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(280px, 1fr))",
-      gap:                 18,
-      animation:           "fadeUp 0.3s ease both",
-    }}>
-      {folders.map(folder => (
-        <FolderCard key={folder.id} folder={folder} onOpen={onOpen} />
-      ))}
-    </div>
-  );
-}
-
-// ── Folder detail view (photos inside one folder) ───────────────────────────────
-
-function FolderDetail({
-  folder,
-  isMobile,
-  onBack,
-  onOpenLightbox,
-}: {
-  folder: GipFolder;
-  isMobile: boolean;
-  onBack: () => void;
-  onOpenLightbox: (photo: GipPhoto) => void;
-}) {
-  const hasPhotos = folder.photos.length > 0;
-  const placeholders = Array.from({ length: folder.placeholderCount });
-
-  return (
-    <div style={{ animation: "fadeUp 0.3s ease both" }}>
-      {/* Breadcrumb / back */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, flexWrap: "wrap" }}>
         <button
-          onClick={onBack}
+          onClick={goPrevMonth}
+          aria-label="Previous month"
           style={{
-            display:       "inline-flex",
-            alignItems:    "center",
-            gap:           6,
-            background:    "white",
-            border:        "1.5px solid rgba(26,29,94,0.14)",
-            borderRadius:  8,
-            padding:       "8px 14px",
-            fontSize:      "0.8rem",
-            fontWeight:    700,
-            color:         COLORS.navy,
-            cursor:        "pointer",
-            fontFamily:    "'Source Sans 3', sans-serif",
-            transition:    "background 0.15s",
+            background: "rgba(255,255,255,0.1)", border: "1.5px solid rgba(255,255,255,0.2)",
+            color: "white", borderRadius: 8, width: 34, height: 34,
+            cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center",
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(26,29,94,0.04)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
         >
-          ← All Folders
+          ←
         </button>
-        <span style={{ color: COLORS.mutedText, fontSize: "0.8rem" }}>/</span>
-        <span style={{
-          fontSize:      "0.78rem",
-          fontWeight:    800,
-          color:         COLORS.red,
-          letterSpacing: 0.5,
+        <h3 style={{
+          fontFamily: "'Playfair Display', serif",
+          color: "white", fontSize: isMobile ? "1.1rem" : "1.3rem", margin: 0,
         }}>
-          {folder.name}
-        </span>
+          {MONTH_LABELS[viewMonth]} {viewYear}
+        </h3>
+        <button
+          onClick={goNextMonth}
+          aria-label="Next month"
+          style={{
+            background: "rgba(255,255,255,0.1)", border: "1.5px solid rgba(255,255,255,0.2)",
+            color: "white", borderRadius: 8, width: 34, height: 34,
+            cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          →
+        </button>
       </div>
 
-      {hasPhotos ? (
-        <div style={{
-          display:             "grid",
-          gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
-          gap:                 14,
-        }}>
-          {folder.photos.map((photo, i) => (
-            <PhotoCell key={i} photo={photo} onOpenLightbox={onOpenLightbox} />
-          ))}
-        </div>
-      ) : (
-        <>
-          <div style={{
-            display:        "flex",
-            alignItems:     "center",
-            gap:            10,
-            padding:        "14px 18px",
-            background:     "rgba(245,200,66,0.10)",
-            border:         "1.5px solid rgba(245,200,66,0.3)",
-            borderRadius:   10,
-            marginBottom:   20,
+      {/* Weekday labels */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(7, 1fr)",
+        background: COLORS.cream,
+        borderBottom: "1.5px solid rgba(26,29,94,0.08)",
+      }}>
+        {WEEKDAY_LABELS.map(label => (
+          <div key={label} style={{
+            textAlign: "center", padding: isMobile ? "8px 0" : "10px 0",
+            fontSize: "0.7rem", fontWeight: 800, letterSpacing: 1,
+            textTransform: "uppercase", color: COLORS.mutedText,
+            fontFamily: "'Source Sans 3', sans-serif",
           }}>
-            <span style={{ fontSize: "1.1rem" }}>⏳</span>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: COLORS.navy }}>
-              Photos for this folder haven't been posted yet — check back soon.
-            </span>
+            {isMobile ? label.slice(0, 1) : label}
           </div>
-          <div style={{
-            display:             "grid",
-            gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
-            gap:                 14,
-          }}>
-            {placeholders.map((_, i) => (
-              <PlaceholderCell key={i} />
-            ))}
-          </div>
-        </>
-      )}
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+        {cells.map((day, i) => {
+          if (day === null) {
+            return <div key={`blank-${i}`} style={{ aspectRatio: "1", borderRight: "1px solid rgba(26,29,94,0.04)", borderBottom: "1px solid rgba(26,29,94,0.04)" }} />;
+          }
+
+          const iso = dateKey(viewYear, viewMonth, day);
+          const dayEvents = eventsByDate[iso];
+          const hasEvents = !!dayEvents && dayEvents.length > 0;
+
+          return (
+            <button
+              key={iso}
+              onClick={() => hasEvents && onSelectDate(iso)}
+              disabled={!hasEvents}
+              style={{
+                aspectRatio:  "1",
+                border:       "none",
+                borderRight:  "1px solid rgba(26,29,94,0.04)",
+                borderBottom: "1px solid rgba(26,29,94,0.04)",
+                background:   hasEvents ? "rgba(192,21,26,0.06)" : "transparent",
+                cursor:       hasEvents ? "pointer" : "default",
+                display:      "flex",
+                flexDirection: "column",
+                alignItems:   "center",
+                justifyContent: "center",
+                gap:          4,
+                position:     "relative",
+                padding:      0,
+                fontFamily:   "'Source Sans 3', sans-serif",
+                transition:   "background 0.15s",
+              }}
+              onMouseEnter={e => { if (hasEvents) e.currentTarget.style.background = "rgba(192,21,26,0.14)"; }}
+              onMouseLeave={e => { if (hasEvents) e.currentTarget.style.background = "rgba(192,21,26,0.06)"; }}
+            >
+              <span style={{
+                fontSize:   isMobile ? "0.8rem" : "0.9rem",
+                fontWeight: hasEvents || isToday(day) ? 800 : 500,
+                color:      hasEvents ? COLORS.red : isToday(day) ? COLORS.navy : COLORS.bodyText,
+                width:      isToday(day) && !hasEvents ? 24 : undefined,
+                height:     isToday(day) && !hasEvents ? 24 : undefined,
+                borderRadius: isToday(day) && !hasEvents ? "50%" : undefined,
+                border:     isToday(day) && !hasEvents ? `1.5px solid ${COLORS.navy}` : undefined,
+                display:    "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {day}
+              </span>
+              {hasEvents && (
+                <span style={{
+                  width: 5, height: 5, borderRadius: "50%", background: COLORS.red,
+                }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -448,16 +378,16 @@ function FolderDetail({
 export default function GipPage() {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [lightbox, setLightbox] = useState<GipPhoto | null>(null);
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  useEffect(() => {
+  useState(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
-  }, []);
+  });
 
-  const selectedFolder = GIP_FOLDERS.find(f => f.id === selectedFolderId) ?? null;
+  const eventsByDate = buildEventsByDate(GIP_EVENTS);
+  const selectedEvents = selectedDate ? eventsByDate[selectedDate] ?? [] : [];
 
   return (
     <>
@@ -613,38 +543,28 @@ export default function GipPage() {
           </div>
         </section>
 
-        {/* ── Photo folders ── */}
+        {/* ── Activity calendar ── */}
         <section style={{ padding: isMobile ? "52px 24px 64px" : "72px 24px 88px" }}>
-          <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+          <div style={{ maxWidth: 780, margin: "0 auto" }}>
 
-            {!selectedFolder && (
-              <div style={{ textAlign: "center", marginBottom: isMobile ? 28 : 36 }}>
-                <span style={{ fontSize: "0.72rem", fontWeight: 800, letterSpacing: 4, textTransform: "uppercase", color: COLORS.red, display: "block", marginBottom: 10 }}>
-                  GIP Capiz
-                </span>
-                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.7rem" : "2.2rem", color: COLORS.navy, margin: "0 0 12px" }}>
-                  Photo Gallery
-                </h2>
-                <p style={{ color: COLORS.bodyText, fontSize: "0.95rem", maxWidth: 480, margin: "0 auto" }}>
-                  Browse GIP highlights by folder. Tap a folder to view its photos.
-                </p>
-              </div>
-            )}
+            <div style={{ textAlign: "center", marginBottom: isMobile ? 28 : 36 }}>
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, letterSpacing: 4, textTransform: "uppercase", color: COLORS.red, display: "block", marginBottom: 10 }}>
+                GIP Capiz
+              </span>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.7rem" : "2.2rem", color: COLORS.navy, margin: "0 0 12px" }}>
+                Activity Calendar
+              </h2>
+              <p style={{ color: COLORS.bodyText, fontSize: "0.95rem", maxWidth: 480, margin: "0 auto" }}>
+                Dates with a red marker have a scheduled GIP activity. Click on one to see the
+                institution, time, participants, and topics covered.
+              </p>
+            </div>
 
-            {selectedFolder ? (
-              <FolderDetail
-                folder={selectedFolder}
-                isMobile={isMobile}
-                onBack={() => setSelectedFolderId(null)}
-                onOpenLightbox={setLightbox}
-              />
-            ) : (
-              <FolderGrid
-                folders={GIP_FOLDERS}
-                isMobile={isMobile}
-                onOpen={setSelectedFolderId}
-              />
-            )}
+            <EventCalendar
+              isMobile={isMobile}
+              eventsByDate={eventsByDate}
+              onSelectDate={setSelectedDate}
+            />
 
           </div>
         </section>
@@ -682,12 +602,11 @@ export default function GipPage() {
 
       </div>
 
-      {lightbox && selectedFolder && (
-        <ImageLightbox
-          src={lightbox.src}
-          alt={lightbox.alt}
-          folderName={selectedFolder.name}
-          onClose={() => setLightbox(null)}
+      {selectedDate && selectedEvents.length > 0 && (
+        <EventDetailModal
+          events={selectedEvents}
+          dateIso={selectedDate}
+          onClose={() => setSelectedDate(null)}
         />
       )}
     </>

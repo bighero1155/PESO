@@ -101,7 +101,7 @@ function Hero() {
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.52)", zIndex: 2 }} />
       <div style={{ position: "relative", zIndex: 3, maxWidth: 1100, margin: "0 auto", padding: "60px 32px", display: "flex", alignItems: "center", gap: 60, width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
         <div style={{ flexShrink: 0, animation: "fadeIn 0.8s ease both" }}>
-          <img src={pesoLogo} alt="PESO Official Seal" style={{ width: 500, height: 500, objectFit: "contain", display: "block", filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))", animation: "pulseGlow 4s ease-in-out infinite" }} />
+          <img src={pesoLogo} alt="PESO Official Seal" style={{ width: 450, height: 450, objectFit: "contain", display: "block", filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))", animation: "pulseGlow 4s ease-in-out infinite" }} />
         </div>
         <div style={{ flex: 1, minWidth: 280, maxWidth: 620, textAlign: "center", animation: "fadeUp 0.9s ease 0.2s both" }}>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(3rem, 7vw, 5.5rem)", color: "white", lineHeight: 1, marginBottom: 28, textShadow: "0 2px 20px rgba(0,0,0,0.5)", letterSpacing: 2 }}>PESO</h1>

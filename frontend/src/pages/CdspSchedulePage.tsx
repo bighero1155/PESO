@@ -53,6 +53,17 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Basic Office Systems Training",
     ],
   },
+  {
+    date: "2026-09-16",
+    institution: "Roxas City Hall — Human Resource Management Office",
+    time: "9:00 AM – 12:00 PM",
+    participants: "15 GIP Interns",
+    topics: [
+      "Orientation on Government Office Protocols",
+      "Data Privacy Act Overview",
+      "Basic Office Systems Training",
+    ],
+  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

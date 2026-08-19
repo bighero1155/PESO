@@ -293,6 +293,17 @@ const MONTH_NAMES = [
 
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
+// Overall summary across every scheduled activity, regardless of month.
+const getOverallSummary = () => {
+  const totalActivities = STATIC_EVENTS.length;
+  const totalParticipants = STATIC_EVENTS.reduce(
+    (sum, ev) => sum + ev.participants.reduce((s, g) => s + g.female + g.male, 0),
+    0
+  );
+  const uniqueInstitutions = new Set(STATIC_EVENTS.map((ev) => ev.institution)).size;
+  return { totalActivities, totalParticipants, uniqueInstitutions };
+};
+
 // Returns events that fall in the given year+month (month is 1-indexed)
 const getEventsForMonth = (
   year: number,
@@ -516,6 +527,7 @@ const CdspSchedulePage: React.FC = () => {
   // ── Calendar grid helpers ──────────────────────────────────────────────────
 
   const monthEvents   = getEventsForMonth(year, month);
+  const summary        = getOverallSummary();
   const firstDow      = new Date(year, month - 1, 1).getDay(); // 0 = Sun
   const daysInMonth   = new Date(year, month, 0).getDate();
 
@@ -622,6 +634,79 @@ const CdspSchedulePage: React.FC = () => {
           </div>
         </div>
 
+        {/* ── Summary ── */}
+        <div style={{
+          maxWidth: 1100, margin: "0 auto",
+          padding: isMobile ? "20px 12px 0" : "32px 24px 0",
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)",
+            gap: isMobile ? 10 : 16,
+          }}>
+            <div style={{
+              background: "white", borderRadius: 12,
+              border: "1.5px solid rgba(26,29,94,0.08)",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+              padding: isMobile ? "14px 14px" : "18px 20px",
+            }}>
+              <p style={{
+                fontSize: isMobile ? "1.5rem" : "1.9rem", fontWeight: 800,
+                color: PESO_NAVY, margin: "0 0 2px", fontFamily: "'Playfair Display', serif",
+              }}>
+                {summary.totalActivities}
+              </p>
+              <p style={{
+                fontSize: "0.72rem", fontWeight: 700, letterSpacing: 0.5,
+                color: "#94a3b8", margin: 0, textTransform: "uppercase",
+              }}>
+                CDSP Activities Conducted
+              </p>
+            </div>
+
+            <div style={{
+              background: "white", borderRadius: 12,
+              border: "1.5px solid rgba(26,29,94,0.08)",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+              padding: isMobile ? "14px 14px" : "18px 20px",
+            }}>
+              <p style={{
+                fontSize: isMobile ? "1.5rem" : "1.9rem", fontWeight: 800,
+                color: PESO_RED, margin: "0 0 2px", fontFamily: "'Playfair Display', serif",
+              }}>
+                {summary.totalParticipants}
+              </p>
+              <p style={{
+                fontSize: "0.72rem", fontWeight: 700, letterSpacing: 0.5,
+                color: "#94a3b8", margin: 0, textTransform: "uppercase",
+              }}>
+                Total Participants Reached
+              </p>
+            </div>
+
+            <div style={{
+              background: "white", borderRadius: 12,
+              border: "1.5px solid rgba(26,29,94,0.08)",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+              padding: isMobile ? "14px 14px" : "18px 20px",
+              gridColumn: isMobile ? "span 2" : undefined,
+            }}>
+              <p style={{
+                fontSize: isMobile ? "1.5rem" : "1.9rem", fontWeight: 800,
+                color: "#e8a800", margin: "0 0 2px", fontFamily: "'Playfair Display', serif",
+              }}>
+                {summary.uniqueInstitutions}
+              </p>
+              <p style={{
+                fontSize: "0.72rem", fontWeight: 700, letterSpacing: 0.5,
+                color: "#94a3b8", margin: 0, textTransform: "uppercase",
+              }}>
+                Institutions Visited
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* ── Body ── */}
         <div style={{
           maxWidth: 1100, margin: "0 auto",
@@ -695,7 +780,7 @@ const CdspSchedulePage: React.FC = () => {
 
             {/* Day cells grid */}
             <div style={{
-              display: "grid", gridTemplateColumns: "repeat(7, 1fr)",
+              display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
               borderLeft: "1px solid #f0f0f4",
             }}>
               {cells.map((day, i) => {
@@ -704,9 +789,11 @@ const CdspSchedulePage: React.FC = () => {
                   return (
                     <div key={`empty-${i}`} style={{
                       minHeight: isMobile ? 52 : 80,
+                      minWidth: 0,
                       background: "#fafafa",
                       borderRight: "1px solid #f0f0f4",
                       borderBottom: "1px solid #f0f0f4",
+                      boxSizing: "border-box",
                     }} />
                   );
                 }
@@ -725,6 +812,7 @@ const CdspSchedulePage: React.FC = () => {
                     }
                     style={{
                       minHeight: isMobile ? 52 : 80,
+                      minWidth: 0,
                       padding: isMobile ? "4px 4px" : "6px 8px",
                       borderRight: "1px solid #f0f0f4",
                       borderBottom: "1px solid #f0f0f4",
@@ -735,6 +823,8 @@ const CdspSchedulePage: React.FC = () => {
                         : "white",
                       cursor: hasEvs ? "pointer" : "default",
                       transition: "background 0.15s",
+                      overflow: "hidden",
+                      boxSizing: "border-box",
                     }}
                     onMouseEnter={(e) => {
                       if (hasEvs && !isSelected)
@@ -760,6 +850,7 @@ const CdspSchedulePage: React.FC = () => {
                       fontSize: isMobile ? "0.7rem" : "0.8rem",
                       fontWeight: isTod || isSelected ? 700 : 400,
                       marginBottom: 3,
+                      flexShrink: 0,
                     }}>
                       {day}
                     </div>
@@ -777,15 +868,16 @@ const CdspSchedulePage: React.FC = () => {
 
                     {/* Institution name pill — desktop only */}
                     {hasEvs && !isMobile && (
-                      <div style={{ marginTop: 4 }}>
+                      <div style={{ marginTop: 4, width: "100%", overflow: "hidden" }}>
                         {dayEvs.slice(0, 1).map((ev, idx) => (
-                          <div key={idx} style={{
+                          <div key={idx} title={ev.institution} style={{
                             background: "#fff1f2",
                             color: PESO_RED,
                             fontSize: "0.6rem", fontWeight: 600,
                             borderRadius: 3, padding: "1px 4px",
                             whiteSpace: "nowrap", overflow: "hidden",
-                            textOverflow: "ellipsis", maxWidth: "100%",
+                            textOverflow: "ellipsis",
+                            width: "100%", boxSizing: "border-box",
                           }}>
                             {ev.institution}
                           </div>

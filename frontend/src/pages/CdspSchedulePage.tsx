@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -9,12 +10,21 @@ interface ParticipantGroup {
   male: number;
 }
 
+interface CdspPhoto {
+  src: string;
+  alt: string;
+}
+
 interface CdspEvent {
   date: string;      // "MM-DD" repeats yearly, "YYYY-MM-DD" one-time
   institution: string;
   time: string;
   participants: ParticipantGroup[];
   topics: string[];
+  /** Drop real photos in here once you have them, e.g. { src: "/assets/cdsp-1.jpg", alt: "" }. */
+  images: CdspPhoto[];
+  /** How many empty placeholder tiles to show while `images` is still empty. */
+  placeholderCount: number;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -26,16 +36,22 @@ const PESO_GOLD = "#e8a800";
 // ─────────────────────────────────────────────────────────────────────────────
 // ✏️  HOW TO ADD / EDIT ACTIVITIES
 //
-//  Each entry has 5 fields:
-//    date         → "MM-DD"      repeats every year  (e.g. "05-01" = every May 1)
-//                   "YYYY-MM-DD" one-time only        (e.g. "2026-08-07")
-//    institution  → Name of the institution/office hosting the activity
-//    time         → e.g. "8:00 a.m. – 11:00 a.m."
-//    participants → Array of groups, each with a label + female/male counts.
-//                    Use whichever groups apply — Junior High School, Senior
-//                    High School, College, Faculty, etc. Totals per row and
-//                    the grand total are calculated automatically.
-//    topics       → List of topics requested/discussed
+//  Each entry has these fields:
+//    date             → "MM-DD"      repeats every year  (e.g. "05-01" = every May 1)
+//                       "YYYY-MM-DD" one-time only        (e.g. "2026-08-07")
+//    institution      → Name of the institution/office hosting the activity
+//    time             → e.g. "8:00 a.m. – 11:00 a.m."
+//    participants     → Array of groups, each with a label + female/male counts.
+//                        Use whichever groups apply — Junior High School, Senior
+//                        High School, College, Faculty, etc. Totals per row and
+//                        the grand total are calculated automatically.
+//    topics           → List of topics requested/discussed
+//    images           → Array of photos for this activity. Leave as [] until you
+//                        have real photos, then add entries like:
+//                        { src: "/assets/cdsp-bungsuan-1.jpg", alt: "Orientation" }
+//    placeholderCount → How many empty "photo coming soon" tiles to show while
+//                        `images` is still empty (purely cosmetic, so the section
+//                        doesn't look broken/blank).
 //
 //  EXAMPLE:
 //    {
@@ -48,6 +64,8 @@ const PESO_GOLD = "#e8a800";
 //        { label: "Faculty",            female: 3,  male: 4  },
 //      ],
 //      topics: ["Programs and Core Services of PESO", "LMI Situation in Capiz"],
+//      images: [],
+//      placeholderCount: 3,
 //    }
 //
 //  To DELETE an entry just remove the whole { } block.
@@ -71,6 +89,10 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Career advice for New Entrants to the Labor Force",
     ],
+    images: [
+      { src: "/assets/speswork4.jpg", alt: "" },
+    ],
+    placeholderCount: 3,
   },
   {
     date: "2026-07-11",
@@ -88,6 +110,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Career advice for New Entrants to the Labor Force",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-06-01",
@@ -104,6 +128,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-05-29",
@@ -120,6 +146,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-05-26",
@@ -136,6 +164,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-05-26",
@@ -152,6 +182,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-05-25",
@@ -168,6 +200,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-05-20",
@@ -184,6 +218,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-05-20",
@@ -200,6 +236,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-05-07",
@@ -216,6 +254,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-04-08",
@@ -232,6 +272,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
       "Resume and Job Interview Preparation",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-02-20",
@@ -249,6 +291,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Career advice for New Entrants to the Labor Force",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-01-28",
@@ -265,6 +309,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Career advice for New Entrants to the Labor Force",
     ],
+    images: [],
+    placeholderCount: 3,
   },
   {
     date: "2026-01-27",
@@ -281,6 +327,8 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Career advice for New Entrants to the Labor Force",
     ],
+    images: [],
+    placeholderCount: 3,
   },
 ];
 
@@ -330,6 +378,71 @@ const getEventsForMonth = (
   return results.sort((a, b) => a.day - b.day);
 };
 
+// ── Image Lightbox (portal — escapes any overflow:hidden parent) ──────────────
+
+function ImageLightbox({
+  photo,
+  institution,
+  onClose,
+}: {
+  photo: CdspPhoto;
+  institution: string;
+  onClose: () => void;
+}) {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 2000,
+        background: "rgba(10,11,38,0.92)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "48px 24px", cursor: "zoom-out",
+      }}
+    >
+      <button
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        aria-label="Close"
+        style={{
+          position: "fixed", top: 20, right: 24,
+          width: 42, height: 42, borderRadius: "50%",
+          border: "1.5px solid rgba(255,255,255,0.3)",
+          background: "rgba(255,255,255,0.08)", color: "white",
+          fontSize: "1.3rem", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 2001,
+        }}
+      >
+        ✕
+      </button>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+        <img
+          src={photo.src}
+          alt={photo.alt}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            maxWidth: "90vw", maxHeight: "82vh", objectFit: "contain",
+            borderRadius: 10, boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+            cursor: "default", display: "block",
+          }}
+        />
+        <span style={{
+          fontSize: "0.7rem", fontWeight: 800, letterSpacing: 2,
+          textTransform: "uppercase", color: PESO_GOLD, textAlign: "center",
+        }}>
+          {institution}
+        </span>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ── Day Detail Modal ──────────────────────────────────────────────────────────
 
 function DayModal({
@@ -338,12 +451,14 @@ function DayModal({
   year,
   events,
   onClose,
+  onOpenLightbox,
 }: {
   day: number;
   month: number;
   year: number;
   events: (CdspEvent & { day: number })[];
   onClose: () => void;
+  onOpenLightbox: (photo: CdspPhoto, institution: string) => void;
 }) {
   return (
     <>
@@ -469,13 +584,53 @@ function DayModal({
                 <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
                   Topics Requested
                 </p>
-                <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
+                <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4, marginBottom: 16 }}>
                   {ev.topics.map((topic, idx) => (
                     <li key={idx} style={{ fontSize: "0.88rem", color: "#5a5a7a", lineHeight: 1.5 }}>
                       {topic}
                     </li>
                   ))}
                 </ul>
+
+                <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
+                  Photos
+                </p>
+                {ev.images.length > 0 ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                    {ev.images.map((photo, pi) => (
+                      <div
+                        key={pi}
+                        onClick={() => onOpenLightbox(photo, ev.institution)}
+                        style={{
+                          aspectRatio: "4/3", borderRadius: 8, overflow: "hidden",
+                          cursor: "zoom-in", border: "1px solid rgba(26,29,94,0.08)",
+                        }}
+                      >
+                        <img
+                          src={photo.src}
+                          alt={photo.alt}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                    {Array.from({ length: ev.placeholderCount }).map((_, pi) => (
+                      <div key={pi} style={{
+                        aspectRatio: "4/3", borderRadius: 8,
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
+                        background: "rgba(26,29,94,0.03)",
+                        border: "1.5px dashed rgba(26,29,94,0.14)",
+                      }}>
+                        <span style={{ fontSize: "1.1rem", opacity: 0.3 }}>🖼️</span>
+                        <span style={{ fontSize: "0.55rem", fontWeight: 700, color: "#9a9ab0", letterSpacing: 0.3, textAlign: "center", padding: "0 4px" }}>
+                          Photo coming soon
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -512,6 +667,7 @@ const CdspSchedulePage: React.FC = () => {
   const [year, setYear]           = useState(today.getFullYear());
   const [month, setMonth]         = useState(today.getMonth() + 1); // 1-indexed
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [lightbox, setLightbox] = useState<{ photo: CdspPhoto; institution: string } | null>(null);
   const [isMobile, setIsMobile]   = useState(
     () => window.matchMedia("(max-width: 640px)").matches
   );
@@ -931,6 +1087,16 @@ const CdspSchedulePage: React.FC = () => {
           year={year}
           events={eventsForDay(selectedDay)}
           onClose={() => setSelectedDay(null)}
+          onOpenLightbox={(photo, institution) => setLightbox({ photo, institution })}
+        />
+      )}
+
+      {/* ── Photo lightbox — opens when a thumbnail inside the modal is clicked ── */}
+      {lightbox && (
+        <ImageLightbox
+          photo={lightbox.photo}
+          institution={lightbox.institution}
+          onClose={() => setLightbox(null)}
         />
       )}
     </>

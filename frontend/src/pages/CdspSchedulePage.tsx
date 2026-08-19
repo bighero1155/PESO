@@ -72,6 +72,216 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
     ],
   },
+  {
+    date: "2026-07-11",
+    institution: "Maindang National High School, Maindang, Cuartero, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "Junior High School", female: 37, male: 38 },
+      { label: "Senior High School", female: 49, male: 52 },
+      { label: "Faculty",            female: 1,  male: 7  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Four Curriculum Exits",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+    ],
+  },
+  {
+    date: "2026-06-01",
+    institution: "Capiz State University - Roxas City Campus, Fuentes Drive, Roxas City, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "College", female: 221, male: 274 },
+      { label: "Faculty", female: 3,  male: 0  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Four Curriculum Exits",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-05-29",
+    institution: "Capiz State University - Tapaz Sattelite College, San Julian, Tapaz, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "College", female: 40, male: 27 },
+      { label: "Faculty", female: 2,  male: 1  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Four Curriculum Exits",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-05-26",
+    institution: "Capiz State University - Sigma Sattelite College, Poblacion Sur, Sigma, Capiz",
+    time: "1:00 p.m. – 3:00 p.m.",
+    participants: [
+      { label: "College", female: 101, male: 44 },
+      { label: "Faculty", female: 2,  male: 1  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-05-26",
+    institution: "Capiz State University - Dumarao Sattelite College, Codingle, Dumarao, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "College", female: 75, male: 39 },
+      { label: "Faculty", female: 5,  male: 2  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-05-25",
+    institution: "Capiz State University - Pilar Sattelite College, Natividad, Pilar, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "College", female: 129, male: 62 },
+      { label: "Faculty", female: 5,  male: 1  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-05-20",
+    institution: "Capiz State University - Burias Campus, Burias, Mambusao, Capiz",
+    time: "1:00 p.m. – 3:00 p.m.",
+    participants: [
+      { label: "College", female: 93, male: 18 },
+      { label: "Faculty", female: 0,  male: 0  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-05-20",
+    institution: "Capiz State University - Mambusao Sattelite College, Poblacion Proper, Mambusao, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "College", female: 51, male: 15 },
+      { label: "Faculty", female: 0,  male: 0  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-05-07",
+    institution: "Hercor College - Roxas City, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "College", female: 319, male: 245 },
+      { label: "Faculty", female: 0,  male: 0  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-04-08",
+    institution: "Filamer Christian University - Roxas City, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "College", female: 222, male: 130 },
+      { label: "Faculty", female: 0,  male: 0  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+      "Resume and Job Interview Preparation",
+    ],
+  },
+  {
+    date: "2026-02-20",
+    institution: "Ramon A. Benjamin Sr. National High School - Dacuton, Dumarao, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "Junior High School", female: 113, male: 92 },
+      { label: "Senior High School", female: 54, male: 30 },
+      { label: "Faculty",            female: 8,  male: 4  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Four Curriculum Exits",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+    ],
+  },
+  {
+    date: "2026-01-28",
+    institution: "Commissioner Luis R. Asis National High School - Poblacion Ilaya, Panay, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "Senior High School", female: 92, male: 116 },
+      { label: "Faculty",            female: 9,  male: 1  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Four Curriculum Exits",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+    ],
+  },
+  {
+    date: "2026-01-27",
+    institution: "Marciano M. Patricio National High School - Natividad, Pilar, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "Senior High School", female: 96, male: 56 },
+      { label: "Faculty",            female: 10,  male: 1  },
+    ],
+    topics: [
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Four Curriculum Exits",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
+    ],
+  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

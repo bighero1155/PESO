@@ -3,11 +3,17 @@ import { useNavigate } from "react-router-dom";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+interface ParticipantGroup {
+  label: string;   // e.g. "Junior High School", "Senior High School", "College", "Faculty"
+  female: number;
+  male: number;
+}
+
 interface CdspEvent {
   date: string;      // "MM-DD" repeats yearly, "YYYY-MM-DD" one-time
   institution: string;
   time: string;
-  participants: string;
+  participants: ParticipantGroup[];
   topics: string[];
 }
 
@@ -22,19 +28,26 @@ const PESO_GOLD = "#e8a800";
 //
 //  Each entry has 5 fields:
 //    date         → "MM-DD"      repeats every year  (e.g. "05-01" = every May 1)
-//                   "YYYY-MM-DD" one-time only        (e.g. "2026-09-15")
+//                   "YYYY-MM-DD" one-time only        (e.g. "2026-08-07")
 //    institution  → Name of the institution/office hosting the activity
-//    time         → e.g. "9:00 AM – 12:00 PM"
-//    participants → e.g. "15 GIP Interns"
-//    topics       → List of topics discussed/requested
+//    time         → e.g. "8:00 a.m. – 11:00 a.m."
+//    participants → Array of groups, each with a label + female/male counts.
+//                    Use whichever groups apply — Junior High School, Senior
+//                    High School, College, Faculty, etc. Totals per row and
+//                    the grand total are calculated automatically.
+//    topics       → List of topics requested/discussed
 //
 //  EXAMPLE:
 //    {
-//      date: "2026-09-15",
-//      institution: "Roxas City Hall — Human Resource Management Office",
-//      time: "9:00 AM – 12:00 PM",
-//      participants: "15 GIP Interns",
-//      topics: ["Orientation on Government Office Protocols", "Data Privacy Act Overview"],
+//      date: "2026-08-07",
+//      institution: "Bungsuan National High School",
+//      time: "8:00 a.m. – 11:00 a.m.",
+//      participants: [
+//        { label: "Junior High School", female: 30, male: 42 },
+//        { label: "Senior High School", female: 60, male: 48 },
+//        { label: "Faculty",            female: 3,  male: 4  },
+//      ],
+//      topics: ["Programs and Core Services of PESO", "LMI Situation in Capiz"],
 //    }
 //
 //  To DELETE an entry just remove the whole { } block.
@@ -43,25 +56,20 @@ const PESO_GOLD = "#e8a800";
 
 const STATIC_EVENTS: CdspEvent[] = [
   {
-    date: "2026-09-15",
-    institution: "Roxas City Hall — Human Resource Management Office",
-    time: "9:00 AM – 12:00 PM",
-    participants: "15 GIP Interns",
-    topics: [
-      "Orientation on Government Office Protocols",
-      "Data Privacy Act Overview",
-      "Basic Office Systems Training",
+    date: "2026-08-07",
+    institution: "Bungsuan National High School, Bungsuan, Dumarao, Capiz",
+    time: "8:00 a.m. – 11:00 a.m.",
+    participants: [
+      { label: "Junior High School", female: 30, male: 42 },
+      { label: "Senior High School", female: 60, male: 48 },
+      { label: "Faculty",            female: 3,  male: 4  },
     ],
-  },
-  {
-    date: "2026-09-16",
-    institution: "Roxas City Hall — Human Resource Management Office",
-    time: "9:00 AM – 12:00 PM",
-    participants: "15 GIP Interns",
     topics: [
-      "Orientation on Government Office Protocols",
-      "Data Privacy Act Overview",
-      "Basic Office Systems Training",
+      "Programs and Core Services of PESO",
+      "LMI Situation in Capiz",
+      "Four Curriculum Exits",
+      "Businesses Top 10 Skills Priorities for 2027",
+      "Career advice for New Entrants to the Labor Force",
     ],
   },
 ];
@@ -192,21 +200,49 @@ function DayModal({
                   {ev.institution}
                 </h3>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: "1rem" }}>🕐</span>
-                    <div>
-                      <p style={{ margin: 0, fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>Time</p>
-                      <p style={{ margin: "2px 0 0", fontSize: "0.88rem", color: "#5a5a7a" }}>{ev.time}</p>
-                    </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 16 }}>
+                  <span style={{ fontSize: "1rem" }}>🕐</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>Time</p>
+                    <p style={{ margin: "2px 0 0", fontSize: "0.88rem", color: "#5a5a7a" }}>{ev.time}</p>
                   </div>
-                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: "1rem" }}>👥</span>
-                    <div>
-                      <p style={{ margin: 0, fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>Participants</p>
-                      <p style={{ margin: "2px 0 0", fontSize: "0.88rem", color: "#5a5a7a" }}>{ev.participants}</p>
-                    </div>
-                  </div>
+                </div>
+
+                <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
+                  Participants
+                </p>
+                <div style={{
+                  border: "1.5px solid rgba(26,29,94,0.08)",
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  marginBottom: 16,
+                }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                    <thead>
+                      <tr style={{ background: "#f4f4f6" }}>
+                        <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Group</th>
+                        <th style={{ textAlign: "right", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Female</th>
+                        <th style={{ textAlign: "right", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Male</th>
+                        <th style={{ textAlign: "right", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ev.participants.map((group, gi) => (
+                        <tr key={gi} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
+                          <td style={{ padding: "8px 12px", color: PESO_NAVY, fontWeight: 600 }}>{group.label}</td>
+                          <td style={{ padding: "8px 12px", textAlign: "right", color: "#5a5a7a" }}>{group.female}</td>
+                          <td style={{ padding: "8px 12px", textAlign: "right", color: "#5a5a7a" }}>{group.male}</td>
+                          <td style={{ padding: "8px 12px", textAlign: "right", color: "#5a5a7a", fontWeight: 700 }}>{group.female + group.male}</td>
+                        </tr>
+                      ))}
+                      <tr style={{ borderTop: "1.5px solid rgba(26,29,94,0.12)", background: "#fff1f2" }}>
+                        <td colSpan={3} style={{ padding: "8px 12px", color: PESO_RED, fontWeight: 700 }}>Grand Total</td>
+                        <td style={{ padding: "8px 12px", textAlign: "right", color: PESO_RED, fontWeight: 800 }}>
+                          {ev.participants.reduce((sum, g) => sum + g.female + g.male, 0)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>

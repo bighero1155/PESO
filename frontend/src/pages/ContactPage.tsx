@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import { useNavigate } from "react-router-dom";
 
@@ -9,6 +9,24 @@ interface FormState {
   email: string;
   subject: string;
   message: string;
+}
+
+// ── Responsive hook ────────────────────────────────────────────────────────────
+// Same isMobile-boolean pattern used across SRA / LRA / JobFair design components.
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState<boolean>(
+    typeof window !== "undefined" ? window.innerWidth <= breakpoint : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [breakpoint]);
+
+  return isMobile;
 }
 
 // ── Apps Script endpoint ──────────────────────────────────────────────────────
@@ -120,6 +138,8 @@ const FAQ = [
 
 function ContactNavbar() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
   return (
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
@@ -130,7 +150,7 @@ function ContactNavbar() {
       <div style={{
         maxWidth: 1300, margin: "0 auto",
         display: "flex", alignItems: "center",
-        height: 58, padding: "0 20px", gap: 16,
+        height: 58, padding: isMobile ? "0 12px" : "0 20px", gap: isMobile ? 10 : 16,
       }}>
         <button
           onClick={() => navigate("/")}
@@ -138,22 +158,25 @@ function ContactNavbar() {
             display: "flex", alignItems: "center", gap: 8,
             background: "rgba(255,255,255,0.12)",
             border: "1.5px solid rgba(255,255,255,0.3)",
-            borderRadius: 7, padding: "6px 14px",
+            borderRadius: 7, padding: isMobile ? "6px 10px" : "6px 14px",
             color: "white", fontSize: "0.82rem", fontWeight: 600,
             cursor: "pointer", letterSpacing: 0.3,
+            flexShrink: 0,
           }}
         >
-          ← Back
+          ← {!isMobile && "Back"}
         </button>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <img src={pesoLogo} alt="PESO" style={{ width: 38, height: 38, objectFit: "contain" }} />
-          <div>
-            <div style={{ color: "white", fontWeight: 800, fontSize: "0.9rem", letterSpacing: 1 }}>P.E.S.O.</div>
-            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.52rem", letterSpacing: 0.8, textTransform: "uppercase" }}>Roxas City</div>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", minWidth: 0 }}>
+          <img src={pesoLogo} alt="PESO" style={{ width: 38, height: 38, objectFit: "contain", flexShrink: 0 }} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: "white", fontWeight: 800, fontSize: "0.9rem", letterSpacing: 1, whiteSpace: "nowrap" }}>P.E.S.O.</div>
+            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.52rem", letterSpacing: 0.8, textTransform: "uppercase", whiteSpace: "nowrap" }}>Roxas City</div>
           </div>
         </a>
         <div style={{ flex: 1 }} />
-        <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.82rem" }}>Contact Us</span>
+        {!isMobile && (
+          <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.82rem" }}>Contact Us</span>
+        )}
       </div>
     </nav>
   );
@@ -162,11 +185,13 @@ function ContactNavbar() {
 // ── Hero Banner ───────────────────────────────────────────────────────────────
 
 function ContactHero() {
+  const isMobile = useIsMobile();
+
   return (
     <section style={{
       marginTop: 58,
       background: "linear-gradient(135deg, #c0151a 0%, #8b0d11 50%, #1a1d5e 100%)",
-      padding: "72px 24px 80px",
+      padding: isMobile ? "48px 20px 56px" : "72px 24px 80px",
       position: "relative", overflow: "hidden",
       textAlign: "center",
     }}>
@@ -196,7 +221,7 @@ function ContactHero() {
         </span>
         <h1 style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: "clamp(2.4rem, 5vw, 4rem)",
+          fontSize: "clamp(2.1rem, 8vw, 4rem)",
           color: "white", lineHeight: 1.1, marginBottom: 18,
           textShadow: "0 2px 20px rgba(0,0,0,0.3)",
         }}>
@@ -219,13 +244,15 @@ function ContactHero() {
 // ── Info Cards ────────────────────────────────────────────────────────────────
 
 function InfoCards() {
+  const isMobile = useIsMobile();
+
   return (
-    <section style={{ background: "white", padding: "72px 24px 60px" }}>
+    <section style={{ background: "white", padding: isMobile ? "48px 16px 40px" : "72px 24px 60px" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: 24,
+          gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: isMobile ? 16 : 24,
         }}>
           {INFO_CARDS.map((card) => (
             <InfoCard key={card.label} {...card} />
@@ -296,6 +323,7 @@ function InfoCard({ icon, label, lines, href, cta }: typeof INFO_CARDS[0]) {
 // ── Map + Form ────────────────────────────────────────────────────────────────
 
 function MapAndForm() {
+  const isMobile = useIsMobile();
   const [form, setForm] = useState<FormState>({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -322,9 +350,9 @@ function MapAndForm() {
   };
 
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "12px 16px",
+    width: "100%", padding: isMobile ? "11px 14px" : "12px 16px",
     border: "1.5px solid rgba(26,29,94,0.15)",
-    borderRadius: 8, fontSize: "0.93rem",
+    borderRadius: 8, fontSize: isMobile ? "1rem" : "0.93rem", // 16px avoids iOS zoom-on-focus
     color: "#1a1d5e", background: "white",
     fontFamily: "'Source Sans 3', sans-serif",
     outline: "none", transition: "border-color 0.2s",
@@ -332,9 +360,13 @@ function MapAndForm() {
   };
 
   return (
-    <section style={{ background: "#f4f4f6", padding: "0 24px 80px" }}>
+    <section style={{ background: "#f4f4f6", padding: isMobile ? "0 16px 56px" : "0 24px 80px" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          gap: isMobile ? 20 : 32,
+        }}>
 
           {/* MAP */}
           <div>
@@ -345,7 +377,7 @@ function MapAndForm() {
               border: "1.5px solid rgba(26,29,94,0.08)",
             }}>
               <div style={{
-                background: "#1a1d5e", padding: "16px 24px",
+                background: "#1a1d5e", padding: isMobile ? "14px 18px" : "16px 24px",
                 display: "flex", alignItems: "center", gap: 12,
               }}>
                 <span style={{ fontSize: "1.2rem" }}>🗺️</span>
@@ -367,14 +399,14 @@ function MapAndForm() {
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.4!2d122.7513!3d11.5858!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33a5f1c4f6b4a7b5%3A0x0!2sProvincial+Capitol%2C+Taft+St%2C+Roxas+City%2C+5800+Capiz!5e0!3m2!1sen!2sph!4v1700000000000!5m2!1sen!2sph"
                 width="100%"
-                height="320"
+                height={isMobile ? 220 : 320}
                 style={{ border: "none", display: "block" }}
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="PESO Capiz Location"
               />
-              <div style={{ padding: "20px 24px" }}>
+              <div style={{ padding: isMobile ? "16px 18px" : "20px 24px" }}>
                 <p style={{
                   fontFamily: "'Source Sans 3', sans-serif",
                   color: "#5a5a7a", fontSize: "0.88rem", lineHeight: 1.6, margin: "0 0 14px",
@@ -402,8 +434,8 @@ function MapAndForm() {
 
             {/* Social links */}
             <div style={{
-              marginTop: 24, background: "white", borderRadius: 14,
-              padding: "24px", border: "1.5px solid rgba(26,29,94,0.08)",
+              marginTop: isMobile ? 16 : 24, background: "white", borderRadius: 14,
+              padding: isMobile ? "18px" : "24px", border: "1.5px solid rgba(26,29,94,0.08)",
               boxShadow: "0 4px 24px rgba(26,29,94,0.06)",
             }}>
               <p style={{
@@ -413,7 +445,7 @@ function MapAndForm() {
               }}>
                 Follow Us
               </p>
-              <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a
                   href="https://www.facebook.com/PESOCapiz"
                   target="_blank"
@@ -467,7 +499,7 @@ function MapAndForm() {
             overflow: "hidden",
           }}>
             <div style={{
-              background: "#c0151a", padding: "20px 28px",
+              background: "#c0151a", padding: isMobile ? "18px 20px" : "20px 28px",
               display: "flex", alignItems: "center", gap: 12,
             }}>
               <span style={{ fontSize: "1.3rem" }}>✉️</span>
@@ -484,9 +516,9 @@ function MapAndForm() {
               </div>
             </div>
 
-            <div style={{ padding: "32px 28px" }}>
+            <div style={{ padding: isMobile ? "22px 18px" : "32px 28px" }}>
               {submitted ? (
-                <div style={{ textAlign: "center", padding: "48px 0" }}>
+                <div style={{ textAlign: "center", padding: isMobile ? "32px 0" : "48px 0" }}>
                   <div style={{ fontSize: "3rem", marginBottom: 16 }}>✅</div>
                   <h3 style={{
                     fontFamily: "'Playfair Display', serif",
@@ -512,7 +544,7 @@ function MapAndForm() {
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: isMobile ? 14 : 18 }}>
                   {submitError && (
                     <div style={{
                       background: "rgba(192,21,26,0.08)",
@@ -525,7 +557,7 @@ function MapAndForm() {
                     </div>
                   )}
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 14 : 16 }}>
                     <div>
                       <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#1a1d5e", marginBottom: 6, fontFamily: "'Source Sans 3', sans-serif", letterSpacing: 0.5 }}>
                         Full Name *
@@ -595,7 +627,7 @@ function MapAndForm() {
                       value={form.message}
                       onChange={handleChange}
                       required
-                      rows={6}
+                      rows={isMobile ? 5 : 6}
                       placeholder="How can we help you? Please describe your concern in detail..."
                       style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
                       onFocus={e => (e.target.style.borderColor = "#c0151a")}
@@ -609,13 +641,14 @@ function MapAndForm() {
                     style={{
                       background: submitting ? "#aaa" : "#c0151a",
                       color: "white", border: "none",
-                      borderRadius: 8, padding: "14px 28px",
+                      borderRadius: 8, padding: isMobile ? "13px 24px" : "14px 28px",
                       fontSize: "0.95rem", fontWeight: 700,
                       cursor: submitting ? "not-allowed" : "pointer",
                       fontFamily: "'Source Sans 3', sans-serif",
                       letterSpacing: 0.3,
                       transition: "background 0.2s",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      width: "100%",
                     }}
                   >
                     {submitting ? "Sending..." : "Send Message →"}
@@ -645,10 +678,11 @@ function MapAndForm() {
 // ── FAQ ───────────────────────────────────────────────────────────────────────
 
 function FAQSection() {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState<number | null>(null);
   return (
     <section style={{
-      padding: "80px 24px",
+      padding: isMobile ? "56px 16px" : "80px 24px",
       background: "linear-gradient(160deg, #0f1240 0%, #1a1d5e 60%, #0f1240 100%)",
       position: "relative",
     }}>
@@ -658,7 +692,7 @@ function FAQSection() {
         backgroundSize: "28px 28px", pointerEvents: "none",
       }} />
       <div style={{ maxWidth: 760, margin: "0 auto", position: "relative", zIndex: 1 }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? 32 : 48 }}>
           <span style={{
             display: "inline-block", fontSize: "0.72rem", fontWeight: 700,
             letterSpacing: 4, textTransform: "uppercase", color: "#f5c842",
@@ -668,7 +702,7 @@ function FAQSection() {
           </span>
           <h2 style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)",
+            fontSize: "clamp(1.6rem, 6vw, 2.6rem)",
             color: "white", lineHeight: 1.2,
           }}>
             Frequently Asked Questions
@@ -689,7 +723,7 @@ function FAQSection() {
                 onClick={() => setOpen(open === i ? null : i)}
                 style={{
                   width: "100%", textAlign: "left",
-                  padding: "18px 24px",
+                  padding: isMobile ? "16px 18px" : "18px 24px",
                   background: "transparent", border: "none", cursor: "pointer",
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                   gap: 16,
@@ -713,7 +747,7 @@ function FAQSection() {
                 </span>
               </button>
               {open === i && (
-                <div style={{ padding: "0 24px 20px" }}>
+                <div style={{ padding: isMobile ? "0 18px 18px" : "0 24px 20px" }}>
                   <p style={{
                     color: "rgba(255,255,255,0.7)", fontSize: "0.92rem",
                     lineHeight: 1.7, margin: 0,
@@ -734,10 +768,11 @@ function FAQSection() {
 // ── Footer ────────────────────────────────────────────────────────────────────
 
 function ContactFooter() {
+  const isMobile = useIsMobile();
   return (
     <footer style={{
       background: "#1a1d5e", color: "rgba(255,255,255,0.6)",
-      padding: "32px 24px",
+      padding: isMobile ? "24px 16px" : "32px 24px",
       fontFamily: "'Source Sans 3', sans-serif",
     }}>
       <div style={{
@@ -768,11 +803,6 @@ export default function ContactPage() {
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #c0151a; border-radius: 3px; }
-
-        @media (max-width: 768px) {
-          .map-form-grid { grid-template-columns: 1fr !important; }
-          .name-email-grid { grid-template-columns: 1fr !important; }
-        }
       `}</style>
 
       <ContactNavbar />

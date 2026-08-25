@@ -84,6 +84,24 @@ const FEATURED_VIDEOS = [
     title: "Community Programs",
     description: "DOLE programs supporting displaced and disadvantaged workers.",
   },
+  {
+    embedSrc: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1042917571861229%2F&show_text=false&width=267&t=0",
+    url: "https://www.facebook.com/reel/844936451407285/",
+    title: "Community Programs",
+    description: "DOLE programs supporting displaced and disadvantaged workers.",
+  },
+  {
+    embedSrc: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F844936451407285%2F&show_text=false&width=267&t=0",
+    url: "https://www.facebook.com/reel/844936451407285/",
+    title: "Community Programs",
+    description: "DOLE programs supporting displaced and disadvantaged workers.",
+  },
+  {
+    embedSrc: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F844936451407285%2F&show_text=false&width=267&t=0",
+    url: "https://www.facebook.com/reel/844936451407285/",
+    title: "Community Programs",
+    description: "DOLE programs supporting displaced and disadvantaged workers.",
+  },
 ];
 
 const MVM_CARDS: MVMCard[] = [

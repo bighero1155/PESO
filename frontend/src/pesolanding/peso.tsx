@@ -79,7 +79,7 @@ const FEATURED_VIDEOS = [
     description: "Connecting job seekers with opportunities across Capiz.",
   },
   {
-    embedSrc: "https://www.facebook.com/plugins/video.php?height=373&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1007586982368879%2F&show_text=false&width=560&t=0",
+    embedSrc: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1861885151449641%2F&show_text=false&width=267&t=0",
     url: "https://www.facebook.com/reel/844936451407285/",
     title: "Community Programs",
     description: "DOLE programs supporting displaced and disadvantaged workers.",

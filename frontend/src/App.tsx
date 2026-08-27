@@ -8,7 +8,6 @@ import Login from "./pages/Login";
 import Register from "./components/Users/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
-import Intro from "./pages/Intro";
 import Dashboard from "./components/Users/Dashboard";
 import "./styles/responsive.css";
 import AdminDashboard from "./Admin/AdminDashboard";
@@ -214,7 +213,6 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  { path: "/intro", element: <RouteLoader><Intro /></RouteLoader> },
   { path: "/", element: <RouteLoader><PesoLanding /></RouteLoader> },
   { path: "*", element: <RouteLoader><NotFound /></RouteLoader> },
   {

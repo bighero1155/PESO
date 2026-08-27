@@ -9,7 +9,6 @@ import Register from "./components/Users/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import Intro from "./pages/Intro";
-import StudentProfile from "./pages/StudentProfile";
 import Dashboard from "./components/Users/Dashboard";
 import "./styles/responsive.css";
 import AdminDashboard from "./Admin/AdminDashboard";
@@ -212,14 +211,6 @@ const router = createBrowserRouter([
             <LandingPage />
           </>
         </RouteLoader>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/profile",
-    element: (
-      <ProtectedRoute allowedRoles={["applicant", "employer", "admin"]}>
-        <RouteLoader><StudentProfile /></RouteLoader>
       </ProtectedRoute>
     ),
   },

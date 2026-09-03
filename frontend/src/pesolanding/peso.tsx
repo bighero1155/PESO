@@ -374,7 +374,7 @@ function Footer() {
         <div>
           <h5 style={{ fontSize: "0.78rem", letterSpacing: 3, textTransform: "uppercase", color: "#f5c842", marginBottom: 14 }}>Contact</h5>
           <p style={{ fontSize: "0.9rem", lineHeight: 1.8 }}>
-            Capiz, Capiz<br />Philippines 5800<br /><br />
+            Room 208, 2nd Floor, Provincial Capitol, Taft St., Brgy. III, Roxas City, Capiz.<br />Philippines 5800<br /><br />
             📞 (036) 620 3550<br />✉️ pesocapiz@gmail.com<br />🕐 Mon–Fri, 8:00 AM – 5:00 PM
           </p>
         </div>

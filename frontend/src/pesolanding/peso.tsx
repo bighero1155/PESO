@@ -84,24 +84,6 @@ const FEATURED_VIDEOS = [
     title: "Community Programs",
     description: "DOLE programs supporting displaced and disadvantaged workers.",
   },
-  {
-    embedSrc: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1042917571861229%2F&show_text=false&width=267&t=0",
-    url: "https://www.facebook.com/reel/844936451407285/",
-    title: "Community Programs",
-    description: "DOLE programs supporting displaced and disadvantaged workers.",
-  },
-  {
-    embedSrc: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1291016909657844%2F&show_text=false&width=267&t=0",
-    url: "https://www.facebook.com/reel/844936451407285/",
-    title: "Community Programs",
-    description: "DOLE programs supporting displaced and disadvantaged workers.",
-  },
-  {
-    embedSrc: "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1000291309643290%2F&show_text=false&width=267&t=0",
-    url: "https://www.facebook.com/reel/844936451407285/",
-    title: "Community Programs",
-    description: "DOLE programs supporting displaced and disadvantaged workers.",
-  },
 ];
 
 const MVM_CARDS: MVMCard[] = [
@@ -366,20 +348,6 @@ function ProgramItem({ num, title, description }: Program) {
   );
 }
 
-// ── CTA ───────────────────────────────────────────────────────────────────────
-
-function CTA({ onRegisterClick }: { onRegisterClick: () => void }) {
-  return (
-    <section id="contact" style={{ background: "#c0151a", textAlign: "center", padding: "80px 24px" }}>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "white", marginBottom: 14 }}>Ready to Find Your Next Opportunity?</h2>
-      <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "1.05rem", marginBottom: 32, fontWeight: 300 }}>Visit your nearest PESO office or register online to access our full range of employment services — free of charge.</p>
-      <button onClick={onRegisterClick} style={{ background: "white", color: "#c0151a", padding: "14px 32px", borderRadius: 6, border: "none", fontWeight: 700, fontSize: "0.95rem", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={e => (e.currentTarget.style.background = "#fdf8f0")} onMouseLeave={e => (e.currentTarget.style.background = "white")}>
-        Register as Job Seeker
-      </button>
-    </section>
-  );
-}
-
 // ── Footer ────────────────────────────────────────────────────────────────────
 
 function Footer() {
@@ -398,8 +366,8 @@ function Footer() {
         <div>
           <h5 style={{ fontSize: "0.78rem", letterSpacing: 3, textTransform: "uppercase", color: "#f5c842", marginBottom: 14 }}>Quick Links</h5>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-            {["Job Search", "Register as Employer", "Upcoming Job Fairs", "DOLE Programs", "TESDA Courses"].map(link => (
-              <li key={link}><a href="#" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none", fontSize: "0.9rem" }} onMouseEnter={e => (e.currentTarget.style.color = "white")} onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}>{link}</a></li>
+            {["Job Search", "DOLE Programs", "TESDA Courses"].map(link => (
+              <li key={link}><a href="https://dole.gov.ph/" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none", fontSize: "0.9rem" }} onMouseEnter={e => (e.currentTarget.style.color = "white")} onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}>{link}</a></li>
             ))}
           </ul>
         </div>
@@ -475,7 +443,6 @@ export default function PesoLanding() {
       <TriviaSection />
       <FeaturedVideos />
       <Programs />
-      <CTA onRegisterClick={handleRegisterClick} />
       <Footer />
     </>
   );

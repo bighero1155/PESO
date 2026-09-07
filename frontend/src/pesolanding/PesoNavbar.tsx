@@ -37,7 +37,7 @@ const DOLE_PROGRAMS_MENU = [
   },
   {
     label: "JobStart",
-    href: "#jobstart",
+    href: "/jobstart",
     children: [],
   },
     {

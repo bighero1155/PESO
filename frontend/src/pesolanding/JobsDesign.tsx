@@ -1349,6 +1349,23 @@ function Step2Card({
           highlightError={consentError}
         />
 
+        {/*
+          FIX: submitError used to only be rendered inside the
+          `jobResults.length > 0` block below. But Jobs.tsx can now set
+          submitError (e.g. "you've already applied to the selected
+          position(s)") in a path that returns *before* jobResults is ever
+          populated — so that message would be set in state but never
+          actually shown, making Submit look like it silently did nothing.
+          This banner covers that gap without duplicating the message once
+          jobResults IS populated (the qualified/error banners below already
+          show submitError in that case).
+        */}
+        {submitError && jobResults.length === 0 && (
+          <div style={{ background: "rgba(192,21,26,0.05)", border: "1.5px solid rgba(192,21,26,0.2)", borderRadius: 10, padding: "14px 18px", animation: "fadeUp 0.25s ease both" }}>
+            <p style={{ color: COLORS.red, fontWeight: 700, fontSize: "0.85rem", margin: 0 }}>{submitError}</p>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={onSubmit}

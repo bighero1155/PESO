@@ -731,7 +731,19 @@ export default function Jobs() {
 
     const newJobIds = chosenJobIds.filter(id => !appliedJobIds.includes(id));
 
-    if (newJobIds.length === 0) return;
+    // FIX: previously this was a silent `return` — clicking Submit while
+    // every checked job was already applied-for did nothing visible at all,
+    // which looked exactly like a broken/unresponsive button. Now it tells
+    // the applicant why nothing happened.
+    if (newJobIds.length === 0) {
+      setSubmitError(
+        chosenJobIds.length === 0
+          ? "Please select at least one position to apply for."
+          : "You've already applied to the selected position(s). Choose a different position to submit another application."
+      );
+      return;
+    }
+
     const personalIssues = getPersonalIssues(form);
 
     const results: JobResult[] = newJobIds.map(id => {
@@ -759,6 +771,13 @@ export default function Jobs() {
       setAppliedJobIds(newApplied);
       saveAppliedIds(newApplied);
       setSubmitSuccess(true);
+
+      // FIX: chosenJobIds previously kept the just-submitted ids forever —
+      // they'd only get filtered back out on the *next* submit attempt via
+      // the newJobIds computation above, but in the meantime the checkboxes
+      // stayed visually "chosen" and could confuse later selection state.
+      // Drop anything that's now applied-for out of the working selection.
+      setChosenJobIds(prev => prev.filter(id => !newApplied.includes(id)));
     } else {
       setSubmitError(result.error || "Something went wrong. Please try again.");
     }

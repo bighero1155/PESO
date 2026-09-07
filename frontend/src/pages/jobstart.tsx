@@ -596,7 +596,7 @@ export default function JobStartPage() {
               animation: "slideIn 0.5s ease 0.1s both", opacity: 0, animationFillMode: "forwards",
             }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-                <img src={jobstartLogo} alt="JobStart" style={{ width: isMobile ? 260 : 340, height: isMobile ? 260 : 340, objectFit: "contain" }} />
+                <img src={jobstartLogo} alt="JobStart" style={{ width: isMobile ? 300 : 420, height: isMobile ? 300 : 420, objectFit: "contain" }} />
                 <span style={{ color: COLORS.gold, fontSize: "0.7rem", fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", textAlign: "center" }}>
                   A DOLE Youth Employment Facilitation Program
                 </span>
@@ -703,7 +703,7 @@ export default function JobStartPage() {
           textAlign:  "center",
         }}>
           <div style={{ maxWidth: 600, margin: "0 auto" }}>
-            <img src={pesoLogo} alt="PESO Capiz" style={{ width: 100, height: 100, objectFit: "contain", marginBottom: 18, opacity: 0.9 }} />
+            <img src={pesoLogo} alt="PESO Capiz" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 18, opacity: 0.9 }} />
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.5rem" : "1.9rem", color: "white", margin: "0 0 12px", lineHeight: 1.2 }}>
               Interested in the JobStart Program?
             </h2>

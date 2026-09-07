@@ -703,7 +703,7 @@ export default function JobStartPage() {
           textAlign:  "center",
         }}>
           <div style={{ maxWidth: 600, margin: "0 auto" }}>
-            <img src={pesoLogo} alt="PESO Capiz" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 18, opacity: 0.9 }} />
+            <img src={pesoLogo} alt="PESO Capiz" style={{ width: 100, height: 100, objectFit: "contain", marginBottom: 18, opacity: 0.9 }} />
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.5rem" : "1.9rem", color: "white", margin: "0 0 12px", lineHeight: 1.2 }}>
               Interested in the JobStart Program?
             </h2>

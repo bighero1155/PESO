@@ -42,7 +42,7 @@ const DOLE_PROGRAMS_MENU = [
   },
     {
     label: "TUPAD",
-    href: "#tupad",
+    href: "/tupad",
     children: [],
   },
 ];

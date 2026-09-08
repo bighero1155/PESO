@@ -330,24 +330,6 @@ const STATIC_EVENTS: CdspEvent[] = [
     images: [],
     placeholderCount: 3,
   },
-  {
-    date: "2026-01-21",
-    institution: "Marciano M. Patricio National High School - Natividad, Pilar, Capiz",
-    time: "8:00 a.m. – 11:00 a.m.",
-    participants: [
-      { label: "Senior High School", female: 90, male: 50 },
-      { label: "Faculty",            female: 10,  male: 1  },
-    ],
-    topics: [
-      "Programs and Core Services of PESO",
-      "LMI Situation in Capiz",
-      "Four Curriculum Exits",
-      "Businesses Top 10 Skills Priorities for 2027",
-      "Career advice for New Entrants to the Labor Force",
-    ],
-    images: [],
-    placeholderCount: 3,
-  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

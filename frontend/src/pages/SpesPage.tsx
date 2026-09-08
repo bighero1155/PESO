@@ -742,7 +742,7 @@ export default function SpesPage() {
               onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
               onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
             >
-              Contact
+              Contact Us
             </button>
           </div>
         </section>

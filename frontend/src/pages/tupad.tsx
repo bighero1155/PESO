@@ -757,7 +757,7 @@ export default function TupadPage() {
               schedules and requirements for the next TUPAD engagement.
             </p>
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/contact")}
               style={{
                 background: COLORS.red, color: "white", border: "none", padding: "13px 28px",
                 borderRadius: 8, fontWeight: 700, fontSize: "0.92rem", cursor: "pointer",
@@ -767,7 +767,7 @@ export default function TupadPage() {
               onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
               onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
             >
-              🏠 Back to Home
+              Contact Us
             </button>
           </div>
         </section>

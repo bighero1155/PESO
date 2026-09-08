@@ -352,6 +352,88 @@ const getOverallSummary = () => {
   return { totalActivities, totalParticipants, uniqueInstitutions };
 };
 
+// Human-readable label for an event's date field, handling both the
+// recurring "MM-DD" form and the one-time "YYYY-MM-DD" form.
+const formatEventDateLabel = (dateStr: string): string => {
+  if (dateStr.length === 5) {
+    const [mm, dd] = dateStr.split("-").map(Number);
+    return `${MONTH_NAMES[mm - 1]} ${dd} (yearly)`;
+  }
+  const [yy, mm, dd] = dateStr.split("-").map(Number);
+  return `${MONTH_NAMES[mm - 1]} ${dd}, ${yy}`;
+};
+
+// Used purely for sorting the "Activities" breakdown, most recent first.
+// One-time dates sort by their real date; recurring "MM-DD" dates sort by
+// month/day only (placed after one-time dates of the same month/day so the
+// list reads newest-first without needing a "real" year for them).
+const eventSortKey = (dateStr: string): string => {
+  if (dateStr.length === 5) return `9999-${dateStr}`;
+  return dateStr;
+};
+
+const totalForEvent = (ev: CdspEvent): number =>
+  ev.participants.reduce((sum, g) => sum + g.female + g.male, 0);
+
+interface InstitutionBreakdownRow {
+  institution: string;
+  visits: number;
+  totalParticipants: number;
+}
+
+// One row per unique institution: how many times CDSP visited, and how many
+// participants were reached there in total across all visits.
+const getInstitutionBreakdown = (): InstitutionBreakdownRow[] => {
+  const map = new Map<string, InstitutionBreakdownRow>();
+
+  STATIC_EVENTS.forEach((ev) => {
+    const existing = map.get(ev.institution);
+    const eventTotal = totalForEvent(ev);
+    if (existing) {
+      existing.visits += 1;
+      existing.totalParticipants += eventTotal;
+    } else {
+      map.set(ev.institution, {
+        institution: ev.institution,
+        visits: 1,
+        totalParticipants: eventTotal,
+      });
+    }
+  });
+
+  return Array.from(map.values()).sort((a, b) =>
+    a.institution.localeCompare(b.institution)
+  );
+};
+
+interface GroupBreakdownRow {
+  label: string;
+  female: number;
+  male: number;
+}
+
+// Aggregates every participant group (Junior High School, College, Faculty,
+// etc.) across all activities into one female/male total per group label.
+const getParticipantGroupBreakdown = (): GroupBreakdownRow[] => {
+  const map = new Map<string, GroupBreakdownRow>();
+
+  STATIC_EVENTS.forEach((ev) => {
+    ev.participants.forEach((g) => {
+      const existing = map.get(g.label);
+      if (existing) {
+        existing.female += g.female;
+        existing.male += g.male;
+      } else {
+        map.set(g.label, { label: g.label, female: g.female, male: g.male });
+      }
+    });
+  });
+
+  return Array.from(map.values()).sort(
+    (a, b) => (b.female + b.male) - (a.female + a.male)
+  );
+};
+
 // Returns events that fall in the given year+month (month is 1-indexed)
 const getEventsForMonth = (
   year: number,
@@ -658,6 +740,272 @@ function DayModal({
   );
 }
 
+// ── Summary Detail Modal ───────────────────────────────────────────────────────
+// Opens when any of the three summary cards (Activities / Participants /
+// Institutions) is clicked. Shows a fuller breakdown behind that number so
+// the summary strip works as a jumping-off point for a report rather than
+// a dead-end stat.
+
+type SummaryModalType = "activities" | "participants" | "institutions";
+
+function SummaryModal({
+  type,
+  onClose,
+  isMobile,
+}: {
+  type: SummaryModalType;
+  onClose: () => void;
+  isMobile: boolean;
+}) {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const titles: Record<SummaryModalType, string> = {
+    activities:   "CDSP Activities Conducted",
+    participants: "Total Participants Reached",
+    institutions: "Institutions Visited",
+  };
+
+  const subtitles: Record<SummaryModalType, string> = {
+    activities:   "Every scheduled activity, most recent first.",
+    participants: "Broken down by participant group and by institution.",
+    institutions: "Every institution visited, with visit count and reach.",
+  };
+
+  return createPortal(
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed", inset: 0, zIndex: 1500,
+          background: "rgba(0,0,0,0.45)", backdropFilter: "blur(3px)",
+        }}
+      />
+
+      {/* Modal */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 1501,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 16,
+      }}>
+        <div style={{
+          background: "white", borderRadius: 16,
+          width: "100%", maxWidth: 560,
+          boxShadow: "0 24px 64px rgba(0,0,0,0.2)",
+          overflow: "hidden", animation: "modalIn 0.2s ease",
+          maxHeight: "85vh", display: "flex", flexDirection: "column",
+        }}>
+          {/* Header */}
+          <div style={{
+            background: PESO_NAVY, padding: "18px 24px",
+            display: "flex", alignItems: "center",
+            justifyContent: "space-between", flexShrink: 0,
+          }}>
+            <div>
+              <p style={{
+                color: PESO_GOLD, fontSize: "0.68rem", fontWeight: 700,
+                letterSpacing: 2, textTransform: "uppercase", margin: "0 0 3px",
+              }}>
+                Summary Breakdown
+              </p>
+              <h2 style={{
+                fontFamily: "'Playfair Display', serif",
+                color: "white", fontSize: isMobile ? "1.05rem" : "1.2rem", margin: 0,
+              }}>
+                {titles[type]}
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.3)",
+                borderRadius: "50%", width: 32, height: 32,
+                color: "white", cursor: "pointer", fontSize: "1rem",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >✕</button>
+          </div>
+
+          <div style={{ overflowY: "auto", flex: 1, padding: "20px 24px" }}>
+            <p style={{ margin: "0 0 16px", fontSize: "0.85rem", color: "#5a5a7a", lineHeight: 1.5 }}>
+              {subtitles[type]}
+            </p>
+
+            {type === "activities" && <ActivitiesBreakdown />}
+            {type === "participants" && <ParticipantsBreakdown />}
+            {type === "institutions" && <InstitutionsBreakdown />}
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            padding: "14px 24px", borderTop: "1px solid #f0f0f4",
+            display: "flex", justifyContent: "flex-end", flexShrink: 0,
+          }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: PESO_NAVY, color: "white",
+                border: "none", borderRadius: 8,
+                padding: "10px 24px", fontWeight: 700,
+                fontSize: "0.88rem", cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
+const thStyle: React.CSSProperties = {
+  textAlign: "left", padding: "8px 12px", fontSize: "0.66rem",
+  fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8",
+};
+const thStyleRight: React.CSSProperties = { ...thStyle, textAlign: "right" };
+const tdStyle: React.CSSProperties = { padding: "8px 12px", color: "#5a5a7a" };
+const tdStyleRight: React.CSSProperties = { ...tdStyle, textAlign: "right" };
+
+// "CDSP Activities Conducted" breakdown — every activity, with the place
+// (institution) and date, most recent first.
+function ActivitiesBreakdown() {
+  const rows = [...STATIC_EVENTS].sort(
+    (a, b) => eventSortKey(b.date).localeCompare(eventSortKey(a.date))
+  );
+
+  return (
+    <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+        <thead>
+          <tr style={{ background: "#f4f4f6" }}>
+            <th style={thStyle}>Date</th>
+            <th style={thStyle}>Institution</th>
+            <th style={thStyleRight}>Participants</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((ev, i) => (
+            <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
+              <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600, whiteSpace: "nowrap" }}>
+                {formatEventDateLabel(ev.date)}
+              </td>
+              <td style={tdStyle}>{ev.institution}</td>
+              <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>
+                {totalForEvent(ev)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// "Total Participants Reached" breakdown — totals by participant group
+// (Junior High School, College, Faculty, etc.) and totals by institution.
+function ParticipantsBreakdown() {
+  const groupRows = getParticipantGroupBreakdown();
+  const institutionRows = [...getInstitutionBreakdown()].sort(
+    (a, b) => b.totalParticipants - a.totalParticipants
+  );
+  const grandTotal = groupRows.reduce((s, g) => s + g.female + g.male, 0);
+
+  return (
+    <>
+      <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
+        By Participant Group
+      </p>
+      <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden", marginBottom: 20 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+          <thead>
+            <tr style={{ background: "#f4f4f6" }}>
+              <th style={thStyle}>Group</th>
+              <th style={thStyleRight}>Female</th>
+              <th style={thStyleRight}>Male</th>
+              <th style={thStyleRight}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groupRows.map((g, i) => (
+              <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
+                <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600 }}>{g.label}</td>
+                <td style={tdStyleRight}>{g.female}</td>
+                <td style={tdStyleRight}>{g.male}</td>
+                <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>{g.female + g.male}</td>
+              </tr>
+            ))}
+            <tr style={{ borderTop: "1.5px solid rgba(26,29,94,0.12)", background: "#fff1f2" }}>
+              <td colSpan={3} style={{ padding: "8px 12px", color: PESO_RED, fontWeight: 700 }}>Grand Total</td>
+              <td style={{ padding: "8px 12px", textAlign: "right", color: PESO_RED, fontWeight: 800 }}>{grandTotal}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
+        By Institution
+      </p>
+      <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+          <thead>
+            <tr style={{ background: "#f4f4f6" }}>
+              <th style={thStyle}>Institution</th>
+              <th style={thStyleRight}>Total Participants</th>
+            </tr>
+          </thead>
+          <tbody>
+            {institutionRows.map((row, i) => (
+              <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
+                <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600 }}>{row.institution}</td>
+                <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>{row.totalParticipants}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+// "Institutions Visited" breakdown — every unique institution (the place/
+// school), how many times CDSP has been there, and how many people were
+// reached there in total.
+function InstitutionsBreakdown() {
+  const rows = getInstitutionBreakdown();
+
+  return (
+    <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+        <thead>
+          <tr style={{ background: "#f4f4f6" }}>
+            <th style={thStyle}>Institution</th>
+            <th style={thStyleRight}>Visits</th>
+            <th style={thStyleRight}>Total Participants</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
+              <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600 }}>{row.institution}</td>
+              <td style={tdStyleRight}>{row.visits}</td>
+              <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>{row.totalParticipants}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const CdspSchedulePage: React.FC = () => {
@@ -668,6 +1016,7 @@ const CdspSchedulePage: React.FC = () => {
   const [month, setMonth]         = useState(today.getMonth() + 1); // 1-indexed
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [lightbox, setLightbox] = useState<{ photo: CdspPhoto; institution: string } | null>(null);
+  const [summaryModal, setSummaryModal] = useState<SummaryModalType | null>(null);
   const [isMobile, setIsMobile]   = useState(
     () => window.matchMedia("(max-width: 640px)").matches
   );
@@ -712,6 +1061,29 @@ const CdspSchedulePage: React.FC = () => {
     day === today.getDate() &&
     month === today.getMonth() + 1 &&
     year === today.getFullYear();
+
+  // Shared style + hover handlers for the three clickable summary cards.
+  const summaryCardStyle: React.CSSProperties = {
+    background: "white", borderRadius: 12,
+    border: "1.5px solid rgba(26,29,94,0.08)",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+    padding: isMobile ? "14px 14px" : "18px 20px",
+    cursor: "pointer",
+    textAlign: "left",
+    width: "100%",
+    fontFamily: "'Source Sans 3', sans-serif",
+    transition: "box-shadow 0.15s, transform 0.15s, border-color 0.15s",
+  };
+  const onSummaryHoverEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.boxShadow = "0 6px 18px rgba(26,29,94,0.12)";
+    e.currentTarget.style.transform = "translateY(-2px)";
+    e.currentTarget.style.borderColor = "rgba(26,29,94,0.18)";
+  };
+  const onSummaryHoverLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.04)";
+    e.currentTarget.style.transform = "translateY(0)";
+    e.currentTarget.style.borderColor = "rgba(26,29,94,0.08)";
+  };
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -800,12 +1172,12 @@ const CdspSchedulePage: React.FC = () => {
             gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)",
             gap: isMobile ? 10 : 16,
           }}>
-            <div style={{
-              background: "white", borderRadius: 12,
-              border: "1.5px solid rgba(26,29,94,0.08)",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-              padding: isMobile ? "14px 14px" : "18px 20px",
-            }}>
+            <button
+              onClick={() => setSummaryModal("activities")}
+              style={summaryCardStyle}
+              onMouseEnter={onSummaryHoverEnter}
+              onMouseLeave={onSummaryHoverLeave}
+            >
               <p style={{
                 fontSize: isMobile ? "1.5rem" : "1.9rem", fontWeight: 800,
                 color: PESO_NAVY, margin: "0 0 2px", fontFamily: "'Playfair Display', serif",
@@ -818,14 +1190,14 @@ const CdspSchedulePage: React.FC = () => {
               }}>
                 CDSP Activities Conducted
               </p>
-            </div>
+            </button>
 
-            <div style={{
-              background: "white", borderRadius: 12,
-              border: "1.5px solid rgba(26,29,94,0.08)",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-              padding: isMobile ? "14px 14px" : "18px 20px",
-            }}>
+            <button
+              onClick={() => setSummaryModal("participants")}
+              style={summaryCardStyle}
+              onMouseEnter={onSummaryHoverEnter}
+              onMouseLeave={onSummaryHoverLeave}
+            >
               <p style={{
                 fontSize: isMobile ? "1.5rem" : "1.9rem", fontWeight: 800,
                 color: PESO_RED, margin: "0 0 2px", fontFamily: "'Playfair Display', serif",
@@ -838,15 +1210,17 @@ const CdspSchedulePage: React.FC = () => {
               }}>
                 Total Participants Reached
               </p>
-            </div>
+            </button>
 
-            <div style={{
-              background: "white", borderRadius: 12,
-              border: "1.5px solid rgba(26,29,94,0.08)",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-              padding: isMobile ? "14px 14px" : "18px 20px",
-              gridColumn: isMobile ? "span 2" : undefined,
-            }}>
+            <button
+              onClick={() => setSummaryModal("institutions")}
+              style={{
+                ...summaryCardStyle,
+                gridColumn: isMobile ? "span 2" : undefined,
+              }}
+              onMouseEnter={onSummaryHoverEnter}
+              onMouseLeave={onSummaryHoverLeave}
+            >
               <p style={{
                 fontSize: isMobile ? "1.5rem" : "1.9rem", fontWeight: 800,
                 color: "#e8a800", margin: "0 0 2px", fontFamily: "'Playfair Display', serif",
@@ -859,7 +1233,7 @@ const CdspSchedulePage: React.FC = () => {
               }}>
                 Institutions Visited
               </p>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -1088,6 +1462,15 @@ const CdspSchedulePage: React.FC = () => {
           events={eventsForDay(selectedDay)}
           onClose={() => setSelectedDay(null)}
           onOpenLightbox={(photo, institution) => setLightbox({ photo, institution })}
+        />
+      )}
+
+      {/* ── Summary detail modal — opens when a summary card is clicked ── */}
+      {summaryModal && (
+        <SummaryModal
+          type={summaryModal}
+          isMobile={isMobile}
+          onClose={() => setSummaryModal(null)}
         />
       )}
 

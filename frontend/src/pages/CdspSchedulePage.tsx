@@ -382,7 +382,7 @@ interface InstitutionBreakdownRow {
 }
 
 // One row per unique institution: how many times CDSP visited, and how many
-// participants were reached there in total across all visits.
+// participants were reached there in total.
 const getInstitutionBreakdown = (): InstitutionBreakdownRow[] => {
   const map = new Map<string, InstitutionBreakdownRow>();
 
@@ -534,6 +534,7 @@ function DayModal({
   events,
   onClose,
   onOpenLightbox,
+  isMobile,
 }: {
   day: number;
   month: number;
@@ -541,6 +542,7 @@ function DayModal({
   events: (CdspEvent & { day: number })[];
   onClose: () => void;
   onOpenLightbox: (photo: CdspPhoto, institution: string) => void;
+  isMobile: boolean;
 }) {
   return (
     <>
@@ -557,7 +559,7 @@ function DayModal({
       <div style={{
         position: "fixed", inset: 0, zIndex: 1001,
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 16,
+        padding: isMobile ? 10 : 16,
       }}>
         <div style={{
           background: "white", borderRadius: 16,
@@ -568,7 +570,7 @@ function DayModal({
         }}>
           {/* Header */}
           <div style={{
-            background: PESO_NAVY, padding: "18px 24px",
+            background: PESO_NAVY, padding: isMobile ? "14px 16px" : "18px 24px",
             display: "flex", alignItems: "center",
             justifyContent: "space-between", flexShrink: 0,
           }}>
@@ -601,7 +603,10 @@ function DayModal({
           </div>
 
           {/* Events list */}
-          <div style={{ overflowY: "auto", flex: 1, padding: "20px 24px" }}>
+          <div style={{
+            overflowY: "auto", flex: 1,
+            padding: isMobile ? "16px 14px" : "20px 24px",
+          }}>
             {events.map((ev, i) => (
               <div
                 key={i}
@@ -629,38 +634,34 @@ function DayModal({
                 <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
                   Participants
                 </p>
-                <div style={{
-                  border: "1.5px solid rgba(26,29,94,0.08)",
-                  borderRadius: 10,
-                  overflow: "hidden",
-                  marginBottom: 16,
-                }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                <ScrollHint isMobile={isMobile} />
+                <div style={{ marginBottom: 16 }}>
+                  <ScrollableTable isMobile={isMobile} minWidth={380}>
                     <thead>
                       <tr style={{ background: "#f4f4f6" }}>
-                        <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Group</th>
-                        <th style={{ textAlign: "right", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Female</th>
-                        <th style={{ textAlign: "right", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Male</th>
-                        <th style={{ textAlign: "right", padding: "8px 12px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8" }}>Total</th>
+                        <th style={getThStyle(isMobile)}>Group</th>
+                        <th style={getThStyleRight(isMobile)}>Female</th>
+                        <th style={getThStyleRight(isMobile)}>Male</th>
+                        <th style={getThStyleRight(isMobile)}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {ev.participants.map((group, gi) => (
                         <tr key={gi} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
-                          <td style={{ padding: "8px 12px", color: PESO_NAVY, fontWeight: 600 }}>{group.label}</td>
-                          <td style={{ padding: "8px 12px", textAlign: "right", color: "#5a5a7a" }}>{group.female}</td>
-                          <td style={{ padding: "8px 12px", textAlign: "right", color: "#5a5a7a" }}>{group.male}</td>
-                          <td style={{ padding: "8px 12px", textAlign: "right", color: "#5a5a7a", fontWeight: 700 }}>{group.female + group.male}</td>
+                          <td style={{ ...getTdStyle(isMobile), color: PESO_NAVY, fontWeight: 600, whiteSpace: "nowrap" }}>{group.label}</td>
+                          <td style={{ ...getTdStyleRight(isMobile), whiteSpace: "nowrap" }}>{group.female}</td>
+                          <td style={{ ...getTdStyleRight(isMobile), whiteSpace: "nowrap" }}>{group.male}</td>
+                          <td style={{ ...getTdStyleRight(isMobile), fontWeight: 700, whiteSpace: "nowrap" }}>{group.female + group.male}</td>
                         </tr>
                       ))}
                       <tr style={{ borderTop: "1.5px solid rgba(26,29,94,0.12)", background: "#fff1f2" }}>
-                        <td colSpan={3} style={{ padding: "8px 12px", color: PESO_RED, fontWeight: 700 }}>Grand Total</td>
-                        <td style={{ padding: "8px 12px", textAlign: "right", color: PESO_RED, fontWeight: 800 }}>
+                        <td colSpan={3} style={{ ...getTdStyle(isMobile), color: PESO_RED, fontWeight: 700, whiteSpace: "nowrap" }}>Grand Total</td>
+                        <td style={{ ...getTdStyleRight(isMobile), color: PESO_RED, fontWeight: 800, whiteSpace: "nowrap" }}>
                           {ev.participants.reduce((sum, g) => sum + g.female + g.male, 0)}
                         </td>
                       </tr>
                     </tbody>
-                  </table>
+                  </ScrollableTable>
                 </div>
 
                 <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
@@ -719,7 +720,7 @@ function DayModal({
 
           {/* Footer */}
           <div style={{
-            padding: "14px 24px", borderTop: "1px solid #f0f0f4",
+            padding: isMobile ? "12px 16px" : "14px 24px", borderTop: "1px solid #f0f0f4",
             display: "flex", justifyContent: "flex-end", flexShrink: 0,
           }}>
             <button
@@ -790,7 +791,7 @@ function SummaryModal({
       <div style={{
         position: "fixed", inset: 0, zIndex: 1501,
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 16,
+        padding: isMobile ? 10 : 16,
       }}>
         <div style={{
           background: "white", borderRadius: 16,
@@ -801,7 +802,7 @@ function SummaryModal({
         }}>
           {/* Header */}
           <div style={{
-            background: PESO_NAVY, padding: "18px 24px",
+            background: PESO_NAVY, padding: isMobile ? "14px 16px" : "18px 24px",
             display: "flex", alignItems: "center",
             justifyContent: "space-between", flexShrink: 0,
           }}>
@@ -833,19 +834,22 @@ function SummaryModal({
             >✕</button>
           </div>
 
-          <div style={{ overflowY: "auto", flex: 1, padding: "20px 24px" }}>
+          <div style={{
+            overflowY: "auto", flex: 1,
+            padding: isMobile ? "16px 14px" : "20px 24px",
+          }}>
             <p style={{ margin: "0 0 16px", fontSize: "0.85rem", color: "#5a5a7a", lineHeight: 1.5 }}>
               {subtitles[type]}
             </p>
 
-            {type === "activities" && <ActivitiesBreakdown />}
-            {type === "participants" && <ParticipantsBreakdown />}
-            {type === "institutions" && <InstitutionsBreakdown />}
+            {type === "activities" && <ActivitiesBreakdown isMobile={isMobile} />}
+            {type === "participants" && <ParticipantsBreakdown isMobile={isMobile} />}
+            {type === "institutions" && <InstitutionsBreakdown isMobile={isMobile} />}
           </div>
 
           {/* Footer */}
           <div style={{
-            padding: "14px 24px", borderTop: "1px solid #f0f0f4",
+            padding: isMobile ? "12px 16px" : "14px 24px", borderTop: "1px solid #f0f0f4",
             display: "flex", justifyContent: "flex-end", flexShrink: 0,
           }}>
             <button
@@ -867,111 +871,179 @@ function SummaryModal({
   );
 }
 
-const thStyle: React.CSSProperties = {
-  textAlign: "left", padding: "8px 12px", fontSize: "0.66rem",
+// Base th/td styles as functions of isMobile — smaller type + tighter
+// padding on small screens so tables take up less horizontal space before
+// scrolling ever needs to kick in.
+const getThStyle = (isMobile: boolean): React.CSSProperties => ({
+  textAlign: "left",
+  padding: isMobile ? "7px 10px" : "8px 12px",
+  fontSize: isMobile ? "0.62rem" : "0.66rem",
   fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#94a3b8",
-};
-const thStyleRight: React.CSSProperties = { ...thStyle, textAlign: "right" };
-const tdStyle: React.CSSProperties = { padding: "8px 12px", color: "#5a5a7a" };
-const tdStyleRight: React.CSSProperties = { ...tdStyle, textAlign: "right" };
+  whiteSpace: "nowrap",
+});
+const getThStyleRight = (isMobile: boolean): React.CSSProperties => ({
+  ...getThStyle(isMobile), textAlign: "right",
+});
+const getTdStyle = (isMobile: boolean): React.CSSProperties => ({
+  padding: isMobile ? "7px 10px" : "8px 12px",
+  color: "#5a5a7a",
+  fontSize: isMobile ? "0.8rem" : "0.85rem",
+});
+const getTdStyleRight = (isMobile: boolean): React.CSSProperties => ({
+  ...getTdStyle(isMobile), textAlign: "right",
+});
 
-// "CDSP Activities Conducted" breakdown — every activity, with the place
-// (institution) and date, most recent first.
-function ActivitiesBreakdown() {
-  const rows = [...STATIC_EVENTS].sort(
-    (a, b) => eventSortKey(b.date).localeCompare(eventSortKey(a.date))
-  );
-
+// Wraps a table so it scrolls horizontally instead of overflowing the modal
+// on narrow screens. minWidth on the inner table forces columns to keep
+// their natural width — text stays readable, and the user swipes to see
+// columns that don't fit, rather than everything getting squished.
+function ScrollableTable({
+  children,
+  isMobile,
+  minWidth,
+}: {
+  children: React.ReactNode;
+  isMobile: boolean;
+  minWidth: number;
+}) {
   return (
-    <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-        <thead>
-          <tr style={{ background: "#f4f4f6" }}>
-            <th style={thStyle}>Date</th>
-            <th style={thStyle}>Institution</th>
-            <th style={thStyleRight}>Participants</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((ev, i) => (
-            <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
-              <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600, whiteSpace: "nowrap" }}>
-                {formatEventDateLabel(ev.date)}
-              </td>
-              <td style={tdStyle}>{ev.institution}</td>
-              <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>
-                {totalForEvent(ev)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
+    <div style={{
+      border: "1.5px solid rgba(26,29,94,0.08)",
+      borderRadius: 10,
+      overflowX: "auto",
+      WebkitOverflowScrolling: "touch",
+    }}>
+      <table style={{
+        width: "100%",
+        minWidth: isMobile ? minWidth : "100%",
+        borderCollapse: "collapse",
+      }}>
+        {children}
       </table>
     </div>
   );
 }
 
+// Small "swipe to see more" hint shown above a table only on mobile, only
+// when that table is wide enough to actually need scrolling.
+function ScrollHint({ isMobile }: { isMobile: boolean }) {
+  if (!isMobile) return null;
+  return (
+    <p style={{
+      fontSize: "0.68rem", color: "#94a3b8", fontStyle: "italic",
+      margin: "0 0 6px", display: "flex", alignItems: "center", gap: 4,
+    }}>
+      ← Swipe table to see more →
+    </p>
+  );
+}
+
+// "CDSP Activities Conducted" breakdown — every activity, with the place
+// (institution) and date, most recent first.
+function ActivitiesBreakdown({ isMobile }: { isMobile: boolean }) {
+  const rows = [...STATIC_EVENTS].sort(
+    (a, b) => eventSortKey(b.date).localeCompare(eventSortKey(a.date))
+  );
+  const th = getThStyle(isMobile);
+  const thRight = getThStyleRight(isMobile);
+  const td = getTdStyle(isMobile);
+  const tdRight = getTdStyleRight(isMobile);
+
+  return (
+    <>
+      <ScrollHint isMobile={isMobile} />
+      <ScrollableTable isMobile={isMobile} minWidth={560}>
+        <thead>
+          <tr style={{ background: "#f4f4f6" }}>
+            <th style={th}>Date</th>
+            <th style={th}>Institution</th>
+            <th style={thRight}>Participants</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((ev, i) => (
+            <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
+              <td style={{ ...td, color: PESO_NAVY, fontWeight: 600, whiteSpace: "nowrap" }}>
+                {formatEventDateLabel(ev.date)}
+              </td>
+              <td style={{ ...td, whiteSpace: isMobile ? "nowrap" : "normal" }}>{ev.institution}</td>
+              <td style={{ ...tdRight, fontWeight: 700, color: PESO_NAVY, whiteSpace: "nowrap" }}>
+                {totalForEvent(ev)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </ScrollableTable>
+    </>
+  );
+}
+
 // "Total Participants Reached" breakdown — totals by participant group
 // (Junior High School, College, Faculty, etc.) and totals by institution.
-function ParticipantsBreakdown() {
+function ParticipantsBreakdown({ isMobile }: { isMobile: boolean }) {
   const groupRows = getParticipantGroupBreakdown();
   const institutionRows = [...getInstitutionBreakdown()].sort(
     (a, b) => b.totalParticipants - a.totalParticipants
   );
   const grandTotal = groupRows.reduce((s, g) => s + g.female + g.male, 0);
+  const th = getThStyle(isMobile);
+  const thRight = getThStyleRight(isMobile);
+  const td = getTdStyle(isMobile);
+  const tdRight = getTdStyleRight(isMobile);
 
   return (
     <>
       <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
         By Participant Group
       </p>
-      <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden", marginBottom: 20 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+      <ScrollHint isMobile={isMobile} />
+      <div style={{ marginBottom: 20 }}>
+        <ScrollableTable isMobile={isMobile} minWidth={420}>
           <thead>
             <tr style={{ background: "#f4f4f6" }}>
-              <th style={thStyle}>Group</th>
-              <th style={thStyleRight}>Female</th>
-              <th style={thStyleRight}>Male</th>
-              <th style={thStyleRight}>Total</th>
+              <th style={th}>Group</th>
+              <th style={thRight}>Female</th>
+              <th style={thRight}>Male</th>
+              <th style={thRight}>Total</th>
             </tr>
           </thead>
           <tbody>
             {groupRows.map((g, i) => (
               <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
-                <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600 }}>{g.label}</td>
-                <td style={tdStyleRight}>{g.female}</td>
-                <td style={tdStyleRight}>{g.male}</td>
-                <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>{g.female + g.male}</td>
+                <td style={{ ...td, color: PESO_NAVY, fontWeight: 600, whiteSpace: "nowrap" }}>{g.label}</td>
+                <td style={{ ...tdRight, whiteSpace: "nowrap" }}>{g.female}</td>
+                <td style={{ ...tdRight, whiteSpace: "nowrap" }}>{g.male}</td>
+                <td style={{ ...tdRight, fontWeight: 700, color: PESO_NAVY, whiteSpace: "nowrap" }}>{g.female + g.male}</td>
               </tr>
             ))}
             <tr style={{ borderTop: "1.5px solid rgba(26,29,94,0.12)", background: "#fff1f2" }}>
-              <td colSpan={3} style={{ padding: "8px 12px", color: PESO_RED, fontWeight: 700 }}>Grand Total</td>
-              <td style={{ padding: "8px 12px", textAlign: "right", color: PESO_RED, fontWeight: 800 }}>{grandTotal}</td>
+              <td colSpan={3} style={{ ...td, color: PESO_RED, fontWeight: 700, whiteSpace: "nowrap" }}>Grand Total</td>
+              <td style={{ ...tdRight, color: PESO_RED, fontWeight: 800, whiteSpace: "nowrap" }}>{grandTotal}</td>
             </tr>
           </tbody>
-        </table>
+        </ScrollableTable>
       </div>
 
       <p style={{ margin: "0 0 8px", fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: PESO_RED }}>
         By Institution
       </p>
-      <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-          <thead>
-            <tr style={{ background: "#f4f4f6" }}>
-              <th style={thStyle}>Institution</th>
-              <th style={thStyleRight}>Total Participants</th>
+      <ScrollHint isMobile={isMobile} />
+      <ScrollableTable isMobile={isMobile} minWidth={480}>
+        <thead>
+          <tr style={{ background: "#f4f4f6" }}>
+            <th style={th}>Institution</th>
+            <th style={thRight}>Total Participants</th>
+          </tr>
+        </thead>
+        <tbody>
+          {institutionRows.map((row, i) => (
+            <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
+              <td style={{ ...td, color: PESO_NAVY, fontWeight: 600, whiteSpace: isMobile ? "nowrap" : "normal" }}>{row.institution}</td>
+              <td style={{ ...tdRight, fontWeight: 700, color: PESO_NAVY, whiteSpace: "nowrap" }}>{row.totalParticipants}</td>
             </tr>
-          </thead>
-          <tbody>
-            {institutionRows.map((row, i) => (
-              <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
-                <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600 }}>{row.institution}</td>
-                <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>{row.totalParticipants}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </ScrollableTable>
     </>
   );
 }
@@ -979,30 +1051,35 @@ function ParticipantsBreakdown() {
 // "Institutions Visited" breakdown — every unique institution (the place/
 // school), how many times CDSP has been there, and how many people were
 // reached there in total.
-function InstitutionsBreakdown() {
+function InstitutionsBreakdown({ isMobile }: { isMobile: boolean }) {
   const rows = getInstitutionBreakdown();
+  const th = getThStyle(isMobile);
+  const thRight = getThStyleRight(isMobile);
+  const td = getTdStyle(isMobile);
+  const tdRight = getTdStyleRight(isMobile);
 
   return (
-    <div style={{ border: "1.5px solid rgba(26,29,94,0.08)", borderRadius: 10, overflow: "hidden" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+    <>
+      <ScrollHint isMobile={isMobile} />
+      <ScrollableTable isMobile={isMobile} minWidth={520}>
         <thead>
           <tr style={{ background: "#f4f4f6" }}>
-            <th style={thStyle}>Institution</th>
-            <th style={thStyleRight}>Visits</th>
-            <th style={thStyleRight}>Total Participants</th>
+            <th style={th}>Institution</th>
+            <th style={thRight}>Visits</th>
+            <th style={thRight}>Total Participants</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
             <tr key={i} style={{ borderTop: "1px solid rgba(26,29,94,0.06)" }}>
-              <td style={{ ...tdStyle, color: PESO_NAVY, fontWeight: 600 }}>{row.institution}</td>
-              <td style={tdStyleRight}>{row.visits}</td>
-              <td style={{ ...tdStyleRight, fontWeight: 700, color: PESO_NAVY }}>{row.totalParticipants}</td>
+              <td style={{ ...td, color: PESO_NAVY, fontWeight: 600, whiteSpace: isMobile ? "nowrap" : "normal" }}>{row.institution}</td>
+              <td style={{ ...tdRight, whiteSpace: "nowrap" }}>{row.visits}</td>
+              <td style={{ ...tdRight, fontWeight: 700, color: PESO_NAVY, whiteSpace: "nowrap" }}>{row.totalParticipants}</td>
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </ScrollableTable>
+    </>
   );
 }
 
@@ -1462,6 +1539,7 @@ const CdspSchedulePage: React.FC = () => {
           events={eventsForDay(selectedDay)}
           onClose={() => setSelectedDay(null)}
           onOpenLightbox={(photo, institution) => setLightbox({ photo, institution })}
+          isMobile={isMobile}
         />
       )}
 

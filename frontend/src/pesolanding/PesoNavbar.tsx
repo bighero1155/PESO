@@ -98,6 +98,7 @@ function MobileDrawer({
 }) {
   const [coreOpen, setCoreOpen] = useState(false);
   const [doleOpen, setDoleOpen] = useState(false);
+  const [otherOpen, setOtherOpen] = useState(false);
   const [coreSubOpen, setCoreSubOpen] = useState<number | null>(null);
   const [doleSubOpen, setDoleSubOpen] = useState<number | null>(null);
 
@@ -240,6 +241,36 @@ function MobileDrawer({
                       </div>
                     )}
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* OTHER PROGRAMS — FIX: this whole section was missing before, so
+              "Other Programs" (and its 3 links) never appeared on mobile even
+              though the desktop OtherProgramsDropdown had it. All items here
+              have no children, so it's rendered as a flat list of links,
+              same as how childless entries are rendered inside the Core
+              Services / DOLE Programs accordions above. */}
+          <div>
+            <button
+              onClick={() => setOtherOpen(p => !p)}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "15px 24px", color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", fontWeight: 400, background: "transparent", borderBottom: "1px solid rgba(255,255,255,0.05)", letterSpacing: 0.2, border: "none", cursor: "pointer", fontFamily: "'Source Sans 3', sans-serif" }}
+            >
+              <span>Other Programs</span>
+              <span style={{ fontSize: "0.7rem", transition: "transform 0.2s", transform: otherOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}>▼</span>
+            </button>
+            {otherOpen && (
+              <div style={{ background: "rgba(0,0,0,0.15)" }}>
+                {OTHER_PROGRAMS_MENU.map(section => (
+                  <a
+                    key={section.label}
+                    href={section.href}
+                    onClick={onClose}
+                    style={{ display: "flex", alignItems: "center", padding: "12px 24px 12px 36px", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.9rem", fontWeight: 500, borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                  >
+                    {section.label}
+                  </a>
                 ))}
               </div>
             )}

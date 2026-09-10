@@ -328,7 +328,7 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Career advice for New Entrants to the Labor Force",
     ],
     images: [
-      { src: "/assets/marianonhs2026/1.jpg", alt: "" },
+      { src: "/assets/marianonhs2026/1.JPG", alt: "" },
     ],
     placeholderCount: 3,
   },

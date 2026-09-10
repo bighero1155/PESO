@@ -1,91 +1,134 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import pesoLogo from "/assets/peso-logo.png";
+
+// ── PESO design tokens (matches the rest of the site) ──────────────────────────
+
+const COLORS = {
+  red:       "#c0151a",
+  redHover:  "#a01015",
+  navy:      "#1a1d5e",
+  gold:      "#f5c842",
+  bodyText:  "rgba(255,255,255,0.75)",
+};
 
 const NotFound: React.FC = () => {
   return (
-    <div
-      className="container-fluid d-flex align-items-center justify-content-center min-vh-100 position-relative"
-      style={{
-        background:
-          "linear-gradient(135deg, #667eea 0%, #764ba2 25%, #209cff 50%, #68e0cf 75%, #a8edea 100%)",
-        backgroundSize: "400% 400%",
-        animation: "oceanWave 8s ease-in-out infinite",
-      }}
-    >
-      {/* Main content */}
-      <div className="text-center text-white position-relative z-index-1">
-        <h1
-          className="display-1 fw-bold mb-3"
-          style={{
-            textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
-            fontSize: "clamp(3rem, 8vw, 8rem)",
-          }}
-        >
-          404
-        </h1>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap"
+        rel="stylesheet"
+      />
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        * { box-sizing: border-box; }
+      `}</style>
 
-        <h2
-          className="h3 mb-4 fw-light"
-          style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.3)" }}
-        >
-          Lost in the Digital Void
-        </h2>
+      <div
+        style={{
+          minHeight: "100vh",
+          width: "100%",
+          background: `linear-gradient(135deg, ${COLORS.navy} 0%, #23276e 55%, ${COLORS.navy} 100%)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          overflow: "hidden",
+          fontFamily: "'Source Sans 3', sans-serif",
+          padding: "24px",
+        }}
+      >
+        {/* Decorative rings, matching the GIP/JobStart hero style */}
+        <div style={{ position: "absolute", width: 480, height: 480, borderRadius: "50%", border: "1px solid rgba(245,200,66,0.08)", top: -160, right: -120, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", border: "1px solid rgba(245,200,66,0.06)", bottom: -80, left: -60, pointerEvents: "none" }} />
 
-        <p
-          className="lead mb-5 px-3"
-          style={{
-            textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
-            maxWidth: "600px",
-            margin: "0 auto 2rem auto",
-          }}
-        >
-          The page you're looking for has drifted away like a message in a
-          bottle. Let's navigate you back to safe lands.
-        </p>
+        <div style={{ textAlign: "center", position: "relative", zIndex: 1, animation: "fadeUp 0.4s ease both", maxWidth: 560 }}>
+          <img
+            src={pesoLogo}
+            alt="PESO Capiz"
+            style={{ width: 76, height: 76, objectFit: "contain", marginBottom: 22, opacity: 0.95 }}
+          />
 
-        <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
-          <Link
-            to="/landing"
-            className="btn btn-lg px-4 py-3 fw-semibold text-decoration-none"
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(245,200,66,0.12)", border: "1px solid rgba(245,200,66,0.25)",
+            borderRadius: 99, padding: "5px 14px", marginBottom: 22,
+          }}>
+            <span style={{ fontSize: "0.68rem", fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: COLORS.gold }}>
+              P.E.S.O. Capiz
+            </span>
+          </div>
+
+          <h1
             style={{
-              background: "rgba(255, 255, 255, 0.9)",
-              color: "#2c5aa0",
-              border: "none",
-              borderRadius: "50px",
-              backdropFilter: "blur(10px)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-              transition: "all 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 1)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.9)";
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.1)";
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 900,
+              color: "white",
+              fontSize: "clamp(3.5rem, 12vw, 7rem)",
+              lineHeight: 1,
+              margin: "0 0 12px",
+              textShadow: "0 4px 24px rgba(0,0,0,0.25)",
             }}
           >
-            🏠 Return to Dashboard
+            404
+          </h1>
+
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 700,
+              color: "white",
+              fontSize: "clamp(1.3rem, 3vw, 1.7rem)",
+              margin: "0 0 14px",
+            }}
+          >
+            Page Not Found
+          </h2>
+
+          <p
+            style={{
+              color: COLORS.bodyText,
+              fontSize: "1rem",
+              lineHeight: 1.75,
+              margin: "0 auto 36px",
+              maxWidth: 440,
+            }}
+          >
+            The page you're looking for doesn't exist or may have been moved.
+            Let's get you back to the PESO Capiz homepage.
+          </p>
+
+          <Link
+            to="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: COLORS.red,
+              color: "white",
+              border: "none",
+              padding: "13px 32px",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: "0.95rem",
+              cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(192,21,26,0.4)",
+              textDecoration: "none",
+              letterSpacing: 0.3,
+              transition: "background 0.18s",
+              fontFamily: "'Source Sans 3', sans-serif",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.redHover; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = COLORS.red; }}
+          >
+            🏠 Back to Home
           </Link>
         </div>
       </div>
-
-      <style>{`
-        @keyframes oceanWave {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-      `}</style>
-    </div>
+    </>
   );
 };
 

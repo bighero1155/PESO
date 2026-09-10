@@ -327,7 +327,9 @@ const STATIC_EVENTS: CdspEvent[] = [
       "Businesses Top 10 Skills Priorities for 2027",
       "Career advice for New Entrants to the Labor Force",
     ],
-    images: [],
+    images: [
+      { src: "/assets/1.jpg", alt: "" },
+    ],
     placeholderCount: 3,
   },
 ];

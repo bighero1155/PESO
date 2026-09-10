@@ -338,7 +338,7 @@ const STATIC_EVENTS: CdspEvent[] = [
       { src: "/assets/marianonhs2026/8.JPG", alt: "" },
       { src: "/assets/marianonhs2026/9.JPG", alt: "" },
       { src: "/assets/marianonhs2026/10.JPG", alt: "" },
-      { src: "/assets/marianonhs2026/11JPG", alt: "" },
+      { src: "/assets/marianonhs2026/11.JPG", alt: "" },
       { src: "/assets/marianonhs2026/12.JPG", alt: "" },
       { src: "/assets/marianonhs2026/13.JPG", alt: "" },
       { src: "/assets/marianonhs2026/14.JPG", alt: "" },

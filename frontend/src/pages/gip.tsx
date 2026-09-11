@@ -43,32 +43,35 @@ const GIP_FOLDERS: GipFolder[] = [
   {
     id: "orientation",
     name: "GIP ORIENTATION",
-    photos: [],
+    photos: [
+      { src: "/assets/GIP/orientation/1.JPG", alt: "" },
+      { src: "/assets/GIP/orientation/2.JPG", alt: "" },
+      { src: "/assets/GIP/orientation/3.JPG", alt: "" },
+      { src: "/assets/GIP/orientation/4.JPG", alt: "" },
+    ],
     placeholderCount: 6,
   },
   {
     id: "deployment",
     name: "GIP DEPLOYMENT TO PARTNER AGENCIES",
-    photos: [],
+    photos: [
+      { src: "/assets/GIP/deployment/1.JPG", alt: "" },
+      { src: "/assets/GIP/deployment/2.JPG", alt: "" },
+      { src: "/assets/GIP/deployment/3.JPG", alt: "" },
+      { src: "/assets/GIP/deployment/4.JPG", alt: "" },
+    ],
     placeholderCount: 6,
   },
   {
     id: "beneficiaries-in-action",
     name: "GIP BENEFICIARIES IN ACTION",
-    photos: [],
+    photos: [
+      { src: "/assets/GIP/action/1.JPG", alt: "" },
+      { src: "/assets/GIP/action/2.JPG", alt: "" },
+      { src: "/assets/GIP/action/3.JPG", alt: "" },
+      { src: "/assets/GIP/action/4.JPG", alt: "" },
+    ],
     placeholderCount: 8,
-  },
-  {
-    id: "capacity-building",
-    name: "GIP CAPACITY BUILDING ACTIVITIES",
-    photos: [],
-    placeholderCount: 6,
-  },
-  {
-    id: "payout",
-    name: "GIP PAYOUT",
-    photos: [],
-    placeholderCount: 6,
   },
 ];
 

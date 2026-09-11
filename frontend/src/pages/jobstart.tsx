@@ -43,32 +43,30 @@ const JOBSTART_FOLDERS: JobStartFolder[] = [
   {
     id: "orientation",
     name: "JOBSTART ORIENTATION & REGISTRATION",
-    photos: [],
+    photos: [
+      { src: "/assets/JOBSTART/orientation/1.JPG", alt: "" },
+      { src: "/assets/JOBSTART/orientation/2.JPG", alt: "" },
+      { src: "/assets/JOBSTART/orientation/3.JPG", alt: "" },
+      { src: "/assets/JOBSTART/orientation/4.JPG", alt: "" },
+    ],
     placeholderCount: 6,
   },
   {
-    id: "life-skills-training",
-    name: "LIFE SKILLS TRAINING",
-    photos: [],
-    placeholderCount: 6,
-  },
-  {
-    id: "technical-training",
-    name: "TECHNICAL SKILLS TRAINING",
-    photos: [],
+    id: "career-coaching",
+    name: "CAREER COACHING",
+    photos: [
+      { src: "/assets/JOBSTART/careercoaching/1.JPG", alt: "" },
+      { src: "/assets/JOBSTART/careercoaching/2.JPG", alt: "" },
+      { src: "/assets/JOBSTART/careercoaching/3.JPG", alt: "" },
+      { src: "/assets/JOBSTART/careercoaching/4.JPG", alt: "" },
+    ],
     placeholderCount: 6,
   },
   {
     id: "internship-deployment",
-    name: "PAID INTERNSHIP DEPLOYMENT",
+    name: "WEEKLY ALLOWANCE",
     photos: [],
     placeholderCount: 8,
-  },
-  {
-    id: "career-coaching",
-    name: "ONE-ON-ONE CAREER COACHING",
-    photos: [],
-    placeholderCount: 6,
   },
   {
     id: "graduation",

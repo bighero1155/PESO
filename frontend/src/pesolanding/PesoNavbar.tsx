@@ -3,7 +3,16 @@ import pesoLogo from "/assets/peso-logo.png";
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
-const DOLE_PROGRAMS_MENU = [
+// Shared shape for nav menu entries. Needed explicitly for menus like
+// YOUTH_PROGRAMS_MENU below where every entry has `children: []` — without
+// an annotation, TS infers that array's element type as `children: never[]`
+// (since nothing in the array ever has a non-empty children array to widen
+// it from), which then breaks `.label`/`.href` access on `section.children`
+// elsewhere. Annotating each such menu keeps them all in sync.
+type MenuChild = { label: string; href: string };
+type MenuSection = { label: string; href: string | null; children: MenuChild[] };
+
+const DOLE_PROGRAMS_MENU: MenuSection[] = [
   {
     label: "Job Fair",
     href: null,
@@ -26,6 +35,17 @@ const DOLE_PROGRAMS_MENU = [
     ],
   },
   {
+    label: "TUPAD",
+    href: "/tupad",
+    children: [],
+  },
+];
+
+// Youth Programs — split out from DOLE Programs Implemented. SPES, GIP, and
+// JobStart used to be flat top-level entries in DOLE_PROGRAMS_MENU; they now
+// live here under their own nav dropdown instead.
+const YOUTH_PROGRAMS_MENU: MenuSection[] = [
+  {
     label: "SPES",
     href: "/spespage",
     children: [],
@@ -40,16 +60,11 @@ const DOLE_PROGRAMS_MENU = [
     href: "/jobstart",
     children: [],
   },
-    {
-    label: "TUPAD",
-    href: "/tupad",
-    children: [],
-  },
 ];
 
 // Core Services — flat accordion list matching the sidebar/dropdown in the image.
 // Items with `children` show an expand arrow; items without are direct links.
-const CORE_SERVICES_MENU = [
+const CORE_SERVICES_MENU: MenuSection[] = [
   {
     label: "Referral and Placement",
     href: null,
@@ -71,7 +86,7 @@ const CORE_SERVICES_MENU = [
   },
 ];
 
-const OTHER_PROGRAMS_MENU = [
+const OTHER_PROGRAMS_MENU: MenuSection[] = [
   {
     label: "Migrants Helpdesk",
     href: "#migrants-helpdesk",
@@ -98,6 +113,7 @@ function MobileDrawer({
 }) {
   const [coreOpen, setCoreOpen] = useState(false);
   const [doleOpen, setDoleOpen] = useState(false);
+  const [youthOpen, setYouthOpen] = useState(false);
   const [otherOpen, setOtherOpen] = useState(false);
   const [coreSubOpen, setCoreSubOpen] = useState<number | null>(null);
   const [doleSubOpen, setDoleSubOpen] = useState<number | null>(null);
@@ -202,7 +218,7 @@ function MobileDrawer({
               onClick={() => { setDoleOpen(p => !p); if (doleOpen) { setDoleSubOpen(null); } }}
               style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "15px 24px", color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", fontWeight: 400, background: "transparent", borderBottom: "1px solid rgba(255,255,255,0.05)", letterSpacing: 0.2, border: "none", cursor: "pointer", fontFamily: "'Source Sans 3', sans-serif" }}
             >
-              <span>DOLE Programs Implemented</span>
+              <span>Reqruitment Programs</span>
               <span style={{ fontSize: "0.7rem", transition: "transform 0.2s", transform: doleOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}>▼</span>
             </button>
             {doleOpen && (
@@ -246,6 +262,34 @@ function MobileDrawer({
             )}
           </div>
 
+          {/* YOUTH PROGRAMS — new section, holds SPES / GIP / JobStart, which
+              used to be flat top-level items inside "Reqruitment Programs"
+              (DOLE_PROGRAMS_MENU). All three are childless direct links, so
+              this renders the same flat-list way as "Other Programs" below. */}
+          <div>
+            <button
+              onClick={() => setYouthOpen(p => !p)}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "15px 24px", color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", fontWeight: 400, background: "transparent", borderBottom: "1px solid rgba(255,255,255,0.05)", letterSpacing: 0.2, border: "none", cursor: "pointer", fontFamily: "'Source Sans 3', sans-serif" }}
+            >
+              <span>Youth Programs</span>
+              <span style={{ fontSize: "0.7rem", transition: "transform 0.2s", transform: youthOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}>▼</span>
+            </button>
+            {youthOpen && (
+              <div style={{ background: "rgba(0,0,0,0.15)" }}>
+                {YOUTH_PROGRAMS_MENU.map(section => (
+                  <a
+                    key={section.label}
+                    href={section.href ?? "#"}
+                    onClick={onClose}
+                    style={{ display: "flex", alignItems: "center", padding: "12px 24px 12px 36px", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.9rem", fontWeight: 500, borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                  >
+                    {section.label}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* OTHER PROGRAMS — FIX: this whole section was missing before, so
               "Other Programs" (and its 3 links) never appeared on mobile even
               though the desktop OtherProgramsDropdown had it. All items here
@@ -265,7 +309,7 @@ function MobileDrawer({
                 {OTHER_PROGRAMS_MENU.map(section => (
                   <a
                     key={section.label}
-                    href={section.href}
+                    href={section.href ?? "#"}
                     onClick={onClose}
                     style={{ display: "flex", alignItems: "center", padding: "12px 24px 12px 36px", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "0.9rem", fontWeight: 500, borderBottom: "1px solid rgba(255,255,255,0.04)" }}
                   >
@@ -656,6 +700,181 @@ function DoleDropdown({ active, onActivate }: { active: boolean; onActivate: () 
   );
 }
 
+// ── Youth Programs Flat Accordion Dropdown (Desktop) ──────────────────────────
+// Same pattern as CoreServicesDropdown / DoleDropdown. Houses SPES, GIP, and
+// JobStart, which used to be flat top-level entries inside DoleDropdown.
+// Built with the same expand-on-children support as the others in case any
+// of these three ever grow their own sub-links later, even though today
+// they're all plain direct links (so this just renders as a flat list).
+
+function YouthProgramsDropdown({ active, onActivate }: { active: boolean; onActivate: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<number | null>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const ref = useRef<HTMLLIElement>(null);
+
+  const calcCoords = () => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setCoords({ top: r.bottom + 4, left: r.left });
+    }
+  };
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setExpandedSection(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const update = () => calcCoords();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open]);
+
+  const toggleSection = (i: number) =>
+    setExpandedSection(prev => (prev === i ? null : i));
+
+  return (
+    <li ref={ref} style={{ display: "flex", alignItems: "stretch", position: "relative" }}>
+      <button
+        ref={btnRef}
+        onClick={() => { calcCoords(); setOpen(p => !p); if (open) setExpandedSection(null); onActivate(); }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: "flex", alignItems: "center", gap: 5,
+          padding: "0 13px",
+          color: hovered || open ? "white" : "rgba(255,255,255,0.88)",
+          background: hovered || open ? "rgba(255,255,255,0.12)" : "transparent",
+          border: "none", cursor: "pointer",
+          fontSize: "0.8rem", fontWeight: active ? 700 : 500,
+          whiteSpace: "nowrap", position: "relative",
+          transition: "all 0.2s", letterSpacing: 0.2,
+          fontFamily: "'Source Sans 3', sans-serif", height: "100%",
+        }}
+      >
+        Youth Programs
+        <span style={{ fontSize: "0.55rem", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginTop: open ? -1 : 1 }}>▼</span>
+        {active && <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "#f5c842", borderRadius: "2px 2px 0 0" }} />}
+      </button>
+
+      {/* Flat dropdown panel */}
+      <div
+        style={{
+          position: "fixed",
+          top: coords.top,
+          left: coords.left,
+          width: 260,
+          background: "white",
+          borderRadius: 10,
+          boxShadow: "0 8px 32px rgba(26,29,94,0.18), 0 2px 8px rgba(0,0,0,0.10)",
+          overflow: "hidden",
+          zIndex: 9999,
+          opacity: open ? 1 : 0,
+          transform: open ? "translateY(0)" : "translateY(-6px)",
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.18s ease, transform 0.18s ease",
+        } as React.CSSProperties}
+      >
+        {YOUTH_PROGRAMS_MENU.map((section, i) => {
+          const hasChildren = section.children.length > 0;
+          const isExpanded = expandedSection === i;
+
+          return (
+            <div key={section.label}>
+              {/* Section row */}
+              {hasChildren ? (
+                <button
+                  onClick={() => toggleSection(i)}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    width: "100%", padding: "13px 18px",
+                    background: isExpanded ? "#fef4f4" : "white",
+                    border: "none",
+                    borderBottom: isExpanded ? "none" : "1px solid rgba(26,29,94,0.07)",
+                    cursor: "pointer",
+                    fontFamily: "'Source Sans 3', sans-serif",
+                    transition: "background 0.15s",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{
+                      width: 20, height: 20, borderRadius: 4,
+                      background: isExpanded ? "#c0151a" : "rgba(192,21,26,0.1)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "0.55rem", color: isExpanded ? "white" : "#c0151a",
+                      flexShrink: 0, transition: "all 0.15s",
+                    }}>
+                      {isExpanded ? "▼" : "▶"}
+                    </span>
+                    <span style={{ color: "#1a1d5e", fontSize: "0.87rem", fontWeight: 600, textAlign: "left" }}>{section.label}</span>
+                  </span>
+                </button>
+              ) : (
+                <a
+                  href={section.href ?? "#"}
+                  onClick={() => { setOpen(false); setExpandedSection(null); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "13px 18px",
+                    textDecoration: "none",
+                    borderBottom: "1px solid rgba(26,29,94,0.07)",
+                    background: "white",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "#fef4f4")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "white")}
+                >
+                  <span style={{ width: 20, height: 20, flexShrink: 0 }} />
+                  <span style={{ color: "#1a1d5e", fontSize: "0.87rem", fontWeight: 600 }}>{section.label}</span>
+                </a>
+              )}
+
+              {/* Expanded children */}
+              {hasChildren && isExpanded && (
+                <div style={{ background: "#fef4f4", borderBottom: "1px solid rgba(26,29,94,0.07)" }}>
+                  {section.children.map((child, ci) => (
+                    <a
+                      key={child.label}
+                      href={child.href}
+                      onClick={() => { setOpen(false); setExpandedSection(null); }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "11px 18px 11px 48px",
+                        textDecoration: "none",
+                        borderBottom: ci < section.children.length - 1 ? "1px solid rgba(192,21,26,0.08)" : "none",
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(192,21,26,0.06)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#c0151a", flexShrink: 0 }} />
+                      <span style={{ color: "#5a5a7a", fontSize: "0.84rem", fontWeight: 500 }}>{child.label}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </li>
+  );
+}
+
 function OtherProgramsDropdown({
   active,
   onActivate,
@@ -806,9 +1025,7 @@ function OtherProgramsDropdown({
               (e.currentTarget.style.background = "white")
             }
           >
-            <span
-            >
-            </span>
+            <span style={{ width: 20, height: 20, flexShrink: 0 }} />
 
             <span
               style={{
@@ -871,6 +1088,9 @@ export default function PesoNavbar({ onLoginClick, onRegisterClick }: { onLoginC
                 <CoreServicesDropdown active={activeLink === "Core Services"} onActivate={() => setActiveLink("Core Services")} />
 
                 <DoleDropdown active={activeLink === "DOLE Programs Implemented"} onActivate={() => setActiveLink("DOLE Implemented Programs")} />
+
+                {/* YOUTH PROGRAMS — new dropdown holding SPES, GIP, JobStart */}
+                <YouthProgramsDropdown active={activeLink === "Youth Programs"} onActivate={() => setActiveLink("Youth Programs")} />
 
                 <OtherProgramsDropdown
                   active={activeLink === "Other Programs"}

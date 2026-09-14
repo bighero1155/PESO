@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import heroBg from "/assets/bg.jpg";
+import capizSeal from "/assets/sealofcapiz.png";
+import dpoDpsLogo from "/assets/dpodps.jpg";
 import PesoNavbar from "../pesolanding/PesoNavbar";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -19,6 +21,13 @@ interface Program {
 
 interface MVMCard {
   icon: string;
+  label: string;
+  text: string;
+}
+
+interface TrustBadge {
+  image: string;
+  alt: string;
   label: string;
   text: string;
 }
@@ -92,6 +101,25 @@ const MVM_CARDS: MVMCard[] = [
   { icon: "🎯", label: "Mission", text: "We are committed to ensure prompt, timely and efficient delivery of employment services and provision of employment related information that will contribute to the poverty alleviation program of the Capiz Provincial Government." },
 ];
 
+// Trust badges shown above Mandate/Vision/Mission — the Provincial Seal
+// establishes PESO Capiz as an office of the Provincial Government, and the
+// DPO/DPS mark signals Data Privacy Act compliance for applicants submitting
+// personal information through this portal.
+const TRUST_BADGES: TrustBadge[] = [
+  {
+    image: capizSeal,
+    alt: "Seal of the Province of Capiz",
+    label: "Provincial Government of Capiz",
+    text: "PESO Capiz operates under the Provincial Government of Capiz as a local employment facilitation office, working hand-in-hand with the Department of Labor and Employment to serve job seekers across the province.",
+  },
+  {
+    image: dpoDpsLogo,
+    alt: "Data Privacy Officer / Data Privacy Seal",
+    label: "Data Privacy Compliance",
+    text: "Our Data Privacy Officer (DPO) oversees how this office collects, uses, and protects your personal information, in line with the Data Privacy Act of 2012 (RA 10173) — so applicant data submitted here is handled responsibly and securely.",
+  },
+];
+
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 function Hero() {
@@ -129,12 +157,55 @@ function MarqueeBar() {
   );
 }
 
+// ── Trust Badges (Provincial Seal + DPO/DPS) ──────────────────────────────────
+// Sits at the very top of the Mandate/Vision/Mission section, above the MVM
+// cards, to establish who PESO Capiz answers to (the Province) and how
+// applicant data submitted through this site is safeguarded (the DPO/DPS).
+
+function TrustBadges() {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, marginBottom: 44 }}>
+      {TRUST_BADGES.map((badge) => (
+        <div
+          key={badge.label}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
+            background: "#fdf8f0",
+            borderRadius: 14,
+            padding: "22px 26px",
+            border: "1px solid rgba(26,29,94,0.08)",
+          }}
+        >
+          <img
+            src={badge.image}
+            alt={badge.alt}
+            style={{
+              width: 68,
+              height: 68,
+              objectFit: "contain",
+              flexShrink: 0,
+              borderRadius: 8,
+            }}
+          />
+          <div>
+            <h4 style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.98rem", color: "#1a1d5e", marginBottom: 6, letterSpacing: 0.2 }}>{badge.label}</h4>
+            <p style={{ fontSize: "0.84rem", color: "#5a5a7a", lineHeight: 1.6, margin: 0 }}>{badge.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Mandate / Vision / Mission ─────────────────────────────────────────────────
 
 function MandateVisionMission() {
   return (
     <section style={{ padding: "70px 24px 0", background: "white" }}>
       <div style={container}>
+        <TrustBadges />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
           {MVM_CARDS.map((c) => (
             <div key={c.label} style={{ background: "white", borderRadius: 12, padding: "26px 24px", border: "1px solid rgba(26,29,94,0.08)", borderTop: "4px solid #c0151a", boxShadow: "0 4px 20px rgba(26,29,94,0.06)", textAlign: "left" }}>

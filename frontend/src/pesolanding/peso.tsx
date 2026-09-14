@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import heroBg from "/assets/bg.jpg";
 import capizSeal from "/assets/sealofcapiz.png";
-import dpoDpsLogo from "/assets/dpodps.jpg";
+import dpoDpsLogo from "/assets/dpodps1.jpg";
 import PesoNavbar from "../pesolanding/PesoNavbar";
 
 // ── Types ────────────────────────────────────────────────────────────────────

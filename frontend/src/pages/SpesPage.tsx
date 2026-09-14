@@ -634,10 +634,10 @@ export default function SpesPage() {
                   onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
                   onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
                 >
-                  Learn More at DOLE →
+                  Learn More SPES Group →
                 </a>
                 <button
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/https://www.facebook.com/share/g/1BxtczhnEF/")}
                   style={{
                     background: "rgba(255,255,255,0.08)", color: "white",
                     border: "1.5px solid rgba(255,255,255,0.2)", padding: "13px 24px",

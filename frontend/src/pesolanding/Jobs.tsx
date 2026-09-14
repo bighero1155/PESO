@@ -66,7 +66,7 @@ export const EDUCATION_LEVELS = [
   { rank: 8, label: "ALS Graduate" },
 ];
 
-export const GENDER_OPTIONS = ["Male", "Female", "Prefer not to say"];
+export const GENDER_OPTIONS = ["Male", "Female"];
 
 export const CIVIL_STATUS_OPTIONS = ["Single", "Married", "Widowed", "Separated", "Divorced"];
 
@@ -74,7 +74,7 @@ export const DISABILITY_OPTIONS = ["None", "Yes"];
 
 export const EMPLOYMENT_STATUS_OPTIONS = ["Employed", "Unemployed"];
 
-export const OFW_STATUS_OPTIONS = ["Not OFW", "Current OFW", "Former OFW"];
+export const OFW_STATUS_OPTIONS = ["Yes", "No"];
 
 export const FOUR_PS_OPTIONS = ["Yes", "No"];
 

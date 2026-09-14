@@ -1057,7 +1057,7 @@ function Step1Card({
             style={fieldInputStyle(hasIssue("Address is required."))}
             value={form.address}
             onChange={e => onUpdateForm({ address: e.target.value.toUpperCase() })}
-            placeholder="BRGY., CITY/MUNICIPALITY, PROVINCE"
+            placeholder="HOUSE NO./STREET, DISTRICT/BRGY, MUNICIPALITY/CITY, PROVINCE"
           />
           </Field>
 
@@ -1067,7 +1067,7 @@ function Step1Card({
             <Field label="Birthday" required style={{ flex: "1 1 180px" }} error={hasIssue("Birthday is required.") ? "Birthday is required." : undefined}>
               <input type="date" style={fieldInputStyle(hasIssue("Birthday is required."))} value={form.birthday} onChange={e => onUpdateForm({ birthday: e.target.value })} />
             </Field>
-            <Field label="Gender" required style={{ flex: "1 1 180px" }} error={hasIssue("Gender is required.") ? "Gender is required." : undefined}>
+            <Field label="Sex" required style={{ flex: "1 1 180px" }} error={hasIssue("Gender is required.") ? "Gender is required." : undefined}>
               <select style={fieldInputStyle(hasIssue("Gender is required."))} value={form.gender} onChange={e => onUpdateForm({ gender: e.target.value })}>
                 <option value="">Select gender</option>
                 {GENDER_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}

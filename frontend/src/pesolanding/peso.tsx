@@ -182,8 +182,8 @@ function TrustBadges() {
             src={badge.image}
             alt={badge.alt}
             style={{
-              width: 68,
-              height: 68,
+              width: 96,
+              height: 96,
               objectFit: "contain",
               flexShrink: 0,
               borderRadius: 8,

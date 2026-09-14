@@ -34,11 +34,6 @@ const DOLE_PROGRAMS_MENU: MenuSection[] = [
       { label: "SRA Schedules", href: "/sraschedules" },
     ],
   },
-  {
-    label: "TUPAD",
-    href: "/tupad",
-    children: [],
-  },
 ];
 
 // Youth Programs — split out from DOLE Programs Implemented. SPES, GIP, and
@@ -81,8 +76,11 @@ const CORE_SERVICES_MENU: MenuSection[] = [
   },
   {
     label: "Career Development Support",
-    href: "/schedule",
-    children: [],
+    href: null,
+    children: [
+      { label: "CDSP Schedule", href: "/schedule" },
+      { label: "Employability Enhancement Seminar", href: "#employability-enhancement-seminar" },
+    ],
   },
 ];
 
@@ -93,13 +91,13 @@ const OTHER_PROGRAMS_MENU: MenuSection[] = [
     children: [],
   },
   {
-    label: "Employability Enhancement Seminar",
-    href: "#employability-enhancement-seminar",
+    label: "OJT/Immersion/Apprenticeship Facilitation",
+    href: "#ojt-immersion-apprenticeship",
     children: [],
   },
   {
-    label: "On-the-Job Training/Immersion Apprenticeship Program",
-    href: "#ojt-immersion-apprenticeship",
+    label: "TUPAD",
+    href: "/tupad",
     children: [],
   },
 ];

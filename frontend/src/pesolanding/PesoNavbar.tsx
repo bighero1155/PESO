@@ -591,7 +591,7 @@ function DoleDropdown({ active, onActivate }: { active: boolean; onActivate: () 
           fontFamily: "'Source Sans 3', sans-serif", height: "100%",
         }}
       >
-        DOLE Programs Implemented
+        Reqruitment Programs
         <span style={{ fontSize: "0.55rem", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginTop: open ? -1 : 1 }}>▼</span>
         {active && <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "#f5c842", borderRadius: "2px 2px 0 0" }} />}
       </button>
@@ -766,7 +766,7 @@ function YouthProgramsDropdown({ active, onActivate }: { active: boolean; onActi
           fontFamily: "'Source Sans 3', sans-serif", height: "100%",
         }}
       >
-        Youth Programs
+        Youth Employment Programs
         <span style={{ fontSize: "0.55rem", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginTop: open ? -1 : 1 }}>▼</span>
         {active && <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "#f5c842", borderRadius: "2px 2px 0 0" }} />}
       </button>

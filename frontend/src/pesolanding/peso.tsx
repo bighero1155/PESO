@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import heroBg from "/assets/bg.jpg";
 import capizSeal from "/assets/sealofcapiz.png";
-import dpoDpsLogo from "/assets/dpo.png";
+import dpoDpsLogo from "/assets/dpodps.jpg";
 import PesoNavbar from "../pesolanding/PesoNavbar";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -164,14 +164,14 @@ function MarqueeBar() {
 
 function TrustBadges() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: 24, marginBottom: 44 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 24, marginBottom: 44 }}>
       {TRUST_BADGES.map((badge) => (
         <div
           key={badge.label}
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 20,
+            gap: 22,
             borderRadius: 14,
             padding: "22px 26px",
           }}
@@ -180,8 +180,8 @@ function TrustBadges() {
             src={badge.image}
             alt={badge.alt}
             style={{
-              width: 96,
-              height: 96,
+              width: 150,
+              height: 150,
               objectFit: "contain",
               flexShrink: 0,
               borderRadius: 8,

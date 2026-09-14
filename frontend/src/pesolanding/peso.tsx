@@ -30,6 +30,7 @@ interface TrustBadge {
   alt: string;
   label: string;
   text: string;
+  size?: number;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -117,6 +118,7 @@ const TRUST_BADGES: TrustBadge[] = [
     alt: "Data Privacy Officer / Data Privacy Seal",
     label: "Data Privacy Compliance",
     text: "Our Data Privacy Officer (DPO) oversees how this office collects, uses, and protects your personal information, in line with the Data Privacy Act of 2012 (RA 10173) — so applicant data submitted here is handled responsibly and securely.",
+    size: 200,
   },
 ];
 

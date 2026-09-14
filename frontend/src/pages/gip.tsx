@@ -557,7 +557,7 @@ export default function GipPage() {
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a
-                  href="https://www.dole.gov.ph"
+                  href="https://www.facebook.com/share/g/1HzP9vFDyG/"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -570,7 +570,7 @@ export default function GipPage() {
                   onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
                   onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
                 >
-                  Learn More at DOLE →
+                  Learn More at GIP Group →
                 </a>
                 <button
                   onClick={() => navigate("/")}

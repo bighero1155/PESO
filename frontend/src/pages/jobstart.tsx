@@ -562,7 +562,7 @@ export default function JobStartPage() {
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a
-                  href="https://jobstart.philjobnet.gov.ph/"
+                  href="https://www.facebook.com/share/g/1Lf4NmuTd3/"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -575,7 +575,7 @@ export default function JobStartPage() {
                   onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
                   onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
                 >
-                  Learn More at JobStart →
+                  Learn More at Jobstart Philippines Capiz →
                 </a>
                 <button
                   onClick={() => navigate("/")}

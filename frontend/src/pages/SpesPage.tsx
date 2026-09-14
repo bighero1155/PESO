@@ -634,7 +634,7 @@ export default function SpesPage() {
                   onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
                   onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
                 >
-                  Learn More in SPES Group→
+                  Learn More at SPES Group→
                 </a>
                 <button
                   onClick={() => navigate("/")}

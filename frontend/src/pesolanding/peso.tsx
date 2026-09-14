@@ -30,7 +30,6 @@ interface TrustBadge {
   alt: string;
   label: string;
   text: string;
-  size?: number;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -112,14 +111,12 @@ const TRUST_BADGES: TrustBadge[] = [
     alt: "Seal of the Province of Capiz",
     label: "Provincial Government of Capiz",
     text: "PESO Capiz operates under the Provincial Government of Capiz as a local employment facilitation office, working hand-in-hand with the Department of Labor and Employment to serve job seekers across the province.",
-    size: 100,
   },
   {
     image: dpoDpsLogo,
     alt: "Data Privacy Officer / Data Privacy Seal",
     label: "Data Privacy Compliance",
     text: "Our Data Privacy Officer (DPO) oversees how this office collects, uses, and protects your personal information, in line with the Data Privacy Act of 2012 (RA 10173) — so applicant data submitted here is handled responsibly and securely.",
-    size: 100,
   },
 ];
 
@@ -183,6 +180,8 @@ function TrustBadges() {
             src={badge.image}
             alt={badge.alt}
             style={{
+              width: 200,
+              height: 200,
               objectFit: "contain",
               flexShrink: 0,
               borderRadius: 8,

@@ -409,6 +409,36 @@ export function isValidGDriveLink(value: string): boolean {
   }
 }
 
+// ── Age helpers ───────────────────────────────────────────────────────────────
+
+/**
+ * Absolute floor for anyone applying through this form, regardless of which
+ * job(s) they pick. Individual jobs can (and do) set a stricter minAge, but
+ * nobody younger than this should ever get past Step 1.
+ */
+export const MIN_APPLICANT_AGE = 18;
+
+/**
+ * Age in full years as of today, based on a "YYYY-MM-DD" birthday string.
+ * Returns null if the string is empty or not a parseable date.
+ */
+export function calculateAge(birthday: string): number | null {
+  const trimmed = birthday.trim();
+  if (!trimmed) return null;
+
+  const dob = new Date(trimmed + "T00:00:00");
+  if (isNaN(dob.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const hasHadBirthdayThisYear =
+    today.getMonth() > dob.getMonth() ||
+    (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+  if (!hasHadBirthdayThisYear) age--;
+
+  return age;
+}
+
 /**
  * Issues that gate the Step 1 → Step 2 transition.
  * Does NOT include school, degree, resume, or consent — those moved to Step 2.
@@ -437,7 +467,17 @@ export function getStep1Issues(form: FormState): string[] {
   if (!form.contact.trim()) issues.push("Contact number is required.");
   if (!form.address.trim()) issues.push("Address is required.");
 
-  if (!form.birthday.trim()) issues.push("Birthday is required.");
+  if (!form.birthday.trim()) {
+    issues.push("Birthday is required.");
+  } else {
+    const age = calculateAge(form.birthday);
+    if (age === null) {
+      issues.push("Please enter a valid birthday.");
+    } else if (age < MIN_APPLICANT_AGE) {
+      issues.push(`You must be at least ${MIN_APPLICANT_AGE} years old to apply.`);
+    }
+  }
+
   if (!form.gender.trim()) issues.push("Gender is required.");
   if (!form.civilStatus.trim()) issues.push("Civil status is required.");
   if (!form.hasDisability.trim()) issues.push("Please indicate if you have a disability.");
@@ -482,6 +522,11 @@ export function getPersonalIssues(form: FormState): string[] {
 /** Qualification issues specific to one job. */
 export function getJobIssues(job: JobListing, form: FormState): string[] {
   const issues: string[] = [];
+
+  const age = calculateAge(form.birthday);
+  if (age !== null && (age < job.minAge || age > job.maxAge)) {
+    issues.push(`This position requires applicants aged ${job.minAge}–${job.maxAge}.`);
+  }
 
   if (form.education === 0) {
     issues.push("Educational attainment is required.");

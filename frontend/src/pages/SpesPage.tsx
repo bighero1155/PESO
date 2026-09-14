@@ -621,7 +621,7 @@ export default function SpesPage() {
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a
-                  href="https://www.dole.gov.ph"
+                  href="https://www.facebook.com/share/g/1BxtczhnEF/"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -634,10 +634,10 @@ export default function SpesPage() {
                   onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
                   onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
                 >
-                  Learn More SPES Group →
+                  Learn More in SPES Group→
                 </a>
                 <button
-                  onClick={() => navigate("/https://www.facebook.com/share/g/1BxtczhnEF/")}
+                  onClick={() => navigate("/")}
                   style={{
                     background: "rgba(255,255,255,0.08)", color: "white",
                     border: "1.5px solid rgba(255,255,255,0.2)", padding: "13px 24px",

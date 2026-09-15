@@ -159,7 +159,7 @@ function MobileDrawer({
 
         <nav style={{ flex: 1, padding: "12px 0" }}>
           {/* HOME */}
-          <a href="#" onClick={onClose} style={{ display: "flex", alignItems: "center", padding: "15px 24px", color: "rgba(255,255,255,0.85)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 400, borderLeft: "3px solid transparent", borderBottom: "1px solid rgba(255,255,255,0.05)", letterSpacing: 0.2, transition: "all 0.15s" }}>HOME</a>
+          <a href="/" onClick={onClose} style={{ display: "flex", alignItems: "center", padding: "15px 24px", color: "rgba(255,255,255,0.85)", textDecoration: "none", fontSize: "0.95rem", fontWeight: 400, borderLeft: "3px solid transparent", borderBottom: "1px solid rgba(255,255,255,0.05)", letterSpacing: 0.2, transition: "all 0.15s" }}>HOME</a>
 
           {/* CORE SERVICES */}
           <div>

@@ -1080,7 +1080,7 @@ export default function PesoNavbar({ onLoginClick, onRegisterClick }: { onLoginC
             {/* Desktop nav */}
             {!isMobile && (
               <ul style={{ display: "flex", alignItems: "stretch", listStyle: "none", margin: 0, padding: 0, flex: 1, overflowX: "auto" }}>
-                <NavItem href="#" label="HOME" active={activeLink === "HOME"} onClick={() => setActiveLink("HOME")} />
+                <NavItem href="/" label="HOME" active={activeLink === "HOME"} onClick={() => setActiveLink("HOME")} />
 
                 {/* CORE SERVICES — flat accordion dropdown */}
                 <CoreServicesDropdown active={activeLink === "Core Services"} onActivate={() => setActiveLink("Core Services")} />

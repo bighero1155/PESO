@@ -28,6 +28,7 @@ import JobFairSchedules from "./pages/Jobfairschedules";
 import GipPage from "./pages/gip";
 import JobStartPage from "./pages/jobstart";
 import TupadPage from "./pages/tupad";
+import OjtPage from "./pages/ojt";
 
 // ---------------------------
 // PESO LOGO LOADING SCREEN
@@ -159,6 +160,7 @@ const router = createBrowserRouter([
   { path: "/gip", element: <RouteLoader><GipPage /></RouteLoader> },
   { path: "/jobstart", element: <RouteLoader><JobStartPage /></RouteLoader> },
   { path: "/tupad", element: <RouteLoader><TupadPage /></RouteLoader> },
+  { path: "/ojt", element: <RouteLoader><OjtPage /></RouteLoader> },
 
   {
     path: "/users",

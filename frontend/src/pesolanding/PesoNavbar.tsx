@@ -92,7 +92,7 @@ const OTHER_PROGRAMS_MENU: MenuSection[] = [
   },
   {
     label: "OJT/Immersion/Apprenticeship Facilitation",
-    href: "#ojt-immersion-apprenticeship",
+    href: "/ojt",
     children: [],
   },
   {

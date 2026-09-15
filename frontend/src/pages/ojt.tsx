@@ -107,19 +107,6 @@ function OjtHero() {
           animation: "fadeUp 0.9s ease both",
         }}
       >
-        <span
-          style={{
-            display: "inline-block",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            letterSpacing: 4,
-            textTransform: "uppercase",
-            color: "#f5c842",
-            marginBottom: 20,
-          }}
-        >
-          Other Programs
-        </span>
         <h1
           style={{
             fontFamily: "'Playfair Display', serif",

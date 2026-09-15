@@ -88,7 +88,7 @@ function OjtHero() {
     >
       <img
         src={ojtHeroBg}
-        alt="OJT Immersion and Apprenticeship Facilitation"
+        alt="OJT/Immersion/Apprenticeship Facilitation"
         style={{
           position: "absolute",
           inset: 0,
@@ -377,7 +377,7 @@ function OjtInAction({ onOpen }: { onOpen: (item: GalleryItem) => void }) {
   return (
     <section style={{ padding: "80px 24px", background: "#f4f4f6" }}>
       <div style={container}>
-        <span style={sectionLabel}>On the Job/Immersion/Apprenticeship Facilitation</span>
+        <span style={sectionLabel}>OJT/Immersion/Apprenticeship Facilitation</span>
         <h2 style={sectionTitle}>Work in Action</h2>
         <p style={sectionSub}>
           Our trainees in their host establishments — gaining hands-on experience in real

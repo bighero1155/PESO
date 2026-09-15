@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useRef } from "react";
 import pesoLogo from "/assets/peso-logo.png";
+import isEmail from "validator/lib/isEmail";
 import {
   JOB_LISTINGS,
   EDUCATION_LEVELS,
@@ -23,7 +24,7 @@ import {
   type FormState,
   type JobResult,
 } from "./Jobs";
-import EmailVerificationGate from "../../email/Emailverificationgate";
+import { useEmailVerification } from "../../email/Emailverification";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -606,6 +607,181 @@ function HoverOption({
   );
 }
 
+// ── Inline email verification widget ──────────────────────────────────────────
+// Lives directly inside the Email Address field in Step 1, using the same
+// useEmailVerification hook that EmailVerificationGate.tsx uses — so LRA and
+// any other consumer of the full-page gate is completely unaffected.
+//
+// Unlike the old gate, this widget is ALWAYS mounted once Step 1 renders (no
+// unmount/remount cycle tied to emailVerified). The one exception is
+// "Change email": since the hook has no reset function, the parent
+// (Step1Card) forces a fresh instance by bumping a `key` prop, which remounts
+// this component back to a clean idle state.
+
+interface InlineEmailVerificationProps {
+  formLabel: string;
+  otpUrl: string;
+  onVerified: (email: string, token: string) => void;
+  onChangeEmail: () => void;
+}
+
+function InlineEmailVerification({
+  formLabel, otpUrl, onVerified, onChangeEmail,
+}: InlineEmailVerificationProps) {
+  const [email, setEmail] = useState("");
+  const [code, setCode]   = useState("");
+  const { status, error, token, cooldown, sendCode, verifyCode } = useEmailVerification(otpUrl);
+
+  const emailValid    = isEmail(email.trim());
+  const editingEmail  = status === "idle" || status === "sending" || status === "error";
+  const showCodeEntry = status === "sent" || status === "verifying";
+
+  useEffect(() => {
+    if (status === "verified" && token) {
+      onVerified(email.trim(), token);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, token]);
+
+  const handleSend = () => {
+    if (emailValid && status !== "sending") sendCode(email.trim(), formLabel);
+  };
+
+  const handleVerify = () => {
+    if (code.length === 6 && status !== "verifying") verifyCode(email.trim(), code.trim());
+  };
+
+  // ── Verified: compact pill, matches the old read-only box ───────────────
+  if (status === "verified") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          padding: "10px 14px",
+          borderRadius: 8,
+          border: "1.5px solid rgba(63,174,90,0.35)",
+          background: "rgba(63,174,90,0.06)",
+          boxSizing: "border-box",
+        }}
+      >
+        <span style={{ color: COLORS.greenText, fontWeight: 700, fontSize: "0.92rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          ✓ {email.trim()}
+        </span>
+        <button
+          type="button"
+          onClick={onChangeEmail}
+          style={{ background: "transparent", border: "none", color: COLORS.red, fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", flexShrink: 0, fontFamily: "'Source Sans 3', sans-serif", padding: 0 }}
+        >
+          Change
+        </button>
+      </div>
+    );
+  }
+
+  // ── Idle / sending / sent / verifying / error: input + inline send/verify ──
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && editingEmail) handleSend(); }}
+          placeholder="juandelacruz@gmail.com"
+          disabled={!editingEmail}
+          style={{ ...inputStyle, flex: "1 1 180px", opacity: editingEmail ? 1 : 0.7, boxSizing: "border-box" }}
+        />
+        {editingEmail && (
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!emailValid || status === "sending"}
+            style={{
+              flex: "0 0 auto",
+              background: !emailValid ? "#ccc" : COLORS.red,
+              color: "white",
+              border: "none",
+              padding: "0 18px",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              cursor: !emailValid ? "not-allowed" : "pointer",
+              fontFamily: "'Source Sans 3', sans-serif",
+              transition: "background 0.15s",
+            }}
+          >
+            {status === "sending" ? "Sending…" : "Send Code"}
+          </button>
+        )}
+      </div>
+
+      {showCodeEntry && (
+        <div style={{ marginTop: 10, animation: "expandDown 0.15s ease both" }}>
+          <p style={{ color: COLORS.mutedText, fontSize: "0.8rem", margin: "0 0 8px" }}>
+            Code sent to <strong style={{ color: COLORS.navy }}>{email.trim()}</strong>. Check your inbox (and spam folder).
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              value={code}
+              onChange={e => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onKeyDown={e => { if (e.key === "Enter") handleVerify(); }}
+              placeholder="6-digit code"
+              autoFocus
+              style={{ ...inputStyle, flex: "1 1 140px", letterSpacing: 4, fontWeight: 700, textAlign: "center", boxSizing: "border-box" }}
+            />
+            <button
+              type="button"
+              onClick={handleVerify}
+              disabled={code.length !== 6 || status === "verifying"}
+              style={{
+                flex: "0 0 auto",
+                background: code.length !== 6 ? "#ccc" : COLORS.navy,
+                color: "white",
+                border: "none",
+                padding: "0 18px",
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                cursor: code.length !== 6 ? "not-allowed" : "pointer",
+                fontFamily: "'Source Sans 3', sans-serif",
+                transition: "background 0.15s",
+              }}
+            >
+              {status === "verifying" ? "Verifying…" : "Verify"}
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={cooldown > 0 || status === "verifying"}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: cooldown > 0 ? COLORS.mutedText : COLORS.red,
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              cursor: cooldown > 0 ? "default" : "pointer",
+              fontFamily: "'Source Sans 3', sans-serif",
+              padding: "6px 0 0",
+            }}
+          >
+            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <p style={{ color: COLORS.red, fontSize: "0.78rem", marginTop: 8, marginBottom: 0, lineHeight: 1.5 }}>
+          ⚠️ {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── Deadline badge (shown in header) ──────────────────────────────────────────
 // Live countdown, ticking every second, down to the application deadline.
 
@@ -794,7 +970,7 @@ export default function JobsDesign({
   const anyQualified = qualifiedResults.length > 0;
   const allQualified = jobResults.length > 0 && jobResults.every(r => r.status === "qualified");
 
-  const step1Issues = step1Attempted ? getStep1Issues(form) : [];
+  const step1Issues = step1Attempted ? getStep1Issues(form, emailVerified) : [];
 
   return (
     <>
@@ -854,7 +1030,6 @@ export default function JobsDesign({
                     form={form}
                     step1Issues={step1Issues}
                     isMobile={isMobile}
-                    emailVerified={emailVerified}
                     onUpdateForm={onUpdateForm}
                     onToggleLanguage={onToggleLanguage}
                     onNext={onNext}
@@ -963,7 +1138,6 @@ interface Step1CardProps {
   form: FormState;
   step1Issues: string[];
   isMobile: boolean;
-  emailVerified: boolean;
   onUpdateForm: (patch: Partial<FormState>) => void;
   onToggleLanguage: (lang: string) => void;
   onNext: () => void;
@@ -973,10 +1147,20 @@ interface Step1CardProps {
 }
 
 function Step1Card({
-  form, step1Issues, isMobile, emailVerified,
+  form, step1Issues, 
   onUpdateForm, onToggleLanguage, onNext, onNavigateHome,
   onEmailVerified, onChangeEmail,
 }: Step1CardProps) {
+  // Bumped whenever "Change email" is clicked, to force a fresh
+  // InlineEmailVerification instance (and thus a fresh useEmailVerification
+  // hook) back at idle — the hook itself has no reset function.
+  const [emailWidgetKey, setEmailWidgetKey] = useState(0);
+
+  const handleEmailChangeClick = () => {
+    onChangeEmail();
+    setEmailWidgetKey(k => k + 1);
+  };
+
   // Checks for EXACT issue messages returned by getStep1Issues, rather than
   // loose substring keywords. Substring matching previously caused false
   // positives — e.g. hasIssue("address") also matched the word "addresses"
@@ -995,186 +1179,163 @@ function Step1Card({
         <strong>N/A</strong> if not applicable. Prepare your updated resume.
       </p>
 
-      {/* Nothing past this point is visible until the email is verified */}
-      {!emailVerified ? (
-        <EmailVerificationGate
-          formLabel="Job Application"
-          colors={COLORS}
-          isMobile={isMobile}
-          otpUrl={JOBS_SUBMIT_URL}
-          onVerified={onEmailVerified}
-        />
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Field label="First Name" required style={{ flex: "1 1 200px" }} error={hasIssue("First name is required.") ? "First name is required." : undefined}>
-              <input style={fieldInputStyle(hasIssue("First name is required."))} value={form.firstName} onChange={e => onUpdateForm({ firstName: e.target.value.toUpperCase() })} placeholder="JUAN" />
-            </Field>
-            <Field label="Middle Name" required style={{ flex: "1 1 160px" }} error={hasIssue("Middle name is required.") ? "Middle name is required." : undefined}>
-              <input style={fieldInputStyle(hasIssue("Middle name is required."))} value={form.middleName} onChange={e => onUpdateForm({ middleName: e.target.value.toUpperCase() })} placeholder="SANTOS" />
-            </Field>
-            <Field label="Last Name" required style={{ flex: "1 1 200px" }} error={hasIssue("Last name is required.") ? "Last name is required." : undefined}>
-              <input style={fieldInputStyle(hasIssue("Last name is required."))} value={form.lastName} onChange={e => onUpdateForm({ lastName: e.target.value.toUpperCase() })} placeholder="DELA CRUZ" />
-            </Field>
-          </div>
-
-          {/* Email (verified, read-only) + Contact */}
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Field label="Email Address" required style={{ flex: "1 1 240px" }}>
-              <div
-                style={{
-                  display:        "flex",
-                  alignItems:     "center",
-                  justifyContent: "space-between",
-                  gap:            10,
-                  padding:        "10px 14px",
-                  borderRadius:   8,
-                  border:         "1.5px solid rgba(63,174,90,0.35)",
-                  background:     "rgba(63,174,90,0.06)",
-                  boxSizing:      "border-box",
-                }}
-              >
-                <span style={{ color: COLORS.greenText, fontWeight: 700, fontSize: "0.92rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  ✓ {form.email}
-                </span>
-                <button
-                  type="button"
-                  onClick={onChangeEmail}
-                  style={{ background: "transparent", border: "none", color: COLORS.red, fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", flexShrink: 0, fontFamily: "'Source Sans 3', sans-serif", padding: 0 }}
-                >
-                  Change
-                </button>
-              </div>
-            </Field>
-            <Field label="Contact Number" required style={{ flex: "1 1 180px" }} error={hasIssue("Contact number is required.") ? "Contact number is required." : undefined}>
-              <input style={fieldInputStyle(hasIssue("Contact number is required."))} value={form.contact} onChange={e => onUpdateForm({ contact: e.target.value.toUpperCase() })} placeholder="09XXXXXXXXX" />
-            </Field>
-          </div>
-
-          <Field label="Address ( House No./street, District/Brgy, Municipality/City, Province )" required error={hasIssue("Address is required.") ? "Address is required." : undefined}>
-            <input
-            style={fieldInputStyle(hasIssue("Address is required."))}
-            value={form.address}
-            onChange={e => onUpdateForm({ address: e.target.value.toUpperCase() })}
-            placeholder="HOUSE NO./STREET, DISTRICT/BRGY, MUNICIPALITY/CITY, PROVINCE"
-          />
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <Field label="First Name" required style={{ flex: "1 1 200px" }} error={hasIssue("First name is required.") ? "First name is required." : undefined}>
+            <input style={fieldInputStyle(hasIssue("First name is required."))} value={form.firstName} onChange={e => onUpdateForm({ firstName: e.target.value.toUpperCase() })} placeholder="JUAN" />
           </Field>
-
-          <SectionDivider title="Personal Profile" />
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Field label="Birthday" required style={{ flex: "1 1 180px" }} error={hasIssue("Birthday is required.") ? "Birthday is required." : undefined}>
-              <input type="date" style={fieldInputStyle(hasIssue("Birthday is required."))} value={form.birthday} onChange={e => onUpdateForm({ birthday: e.target.value })} />
-            </Field>
-            <Field label="Sex" required style={{ flex: "1 1 180px" }} error={hasIssue("Gender is required.") ? "Gender is required." : undefined}>
-              <select style={fieldInputStyle(hasIssue("Gender is required."))} value={form.gender} onChange={e => onUpdateForm({ gender: e.target.value })}>
-                <option value="">Select gender</option>
-                {GENDER_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </Field>
-            <Field label="Civil Status" required style={{ flex: "1 1 180px" }} error={hasIssue("Civil status is required.") ? "Civil status is required." : undefined}>
-              <select style={fieldInputStyle(hasIssue("Civil status is required."))} value={form.civilStatus} onChange={e => onUpdateForm({ civilStatus: e.target.value })}>
-                <option value="">Select civil status</option>
-                {CIVIL_STATUS_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </Field>
-          </div>
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Field label="Disability" required style={{ flex: "1 1 180px" }} error={hasIssue("Please indicate if you have a disability.") ? "Please indicate if you have a disability." : undefined}>
-              <select style={fieldInputStyle(hasIssue("Please indicate if you have a disability."))} value={form.hasDisability} onChange={e => onUpdateForm({ hasDisability: e.target.value, ...(e.target.value !== "Yes" ? { disabilityDetails: "" } : {}) })}>
-                <option value="">Select an option</option>
-                {DISABILITY_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </Field>
-            {form.hasDisability === "Yes" && (
-              <Field label="Please specify (optional)" style={{ flex: "2 1 240px" }}>
-                <input style={inputStyle} value={form.disabilityDetails} onChange={e => onUpdateForm({ disabilityDetails: e.target.value.toUpperCase() })} placeholder="E.G. VISUAL IMPAIRMENT, MOBILITY IMPAIRMENT, ETC." />
-              </Field>
-            )}
-          </div>
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Field label="Employment Status" required style={{ flex: "1 1 180px" }} error={hasIssue("Employment status is required.") ? "Employment status is required." : undefined}>
-              <select style={fieldInputStyle(hasIssue("Employment status is required."))} value={form.employmentStatus} onChange={e => onUpdateForm({ employmentStatus: e.target.value })}>
-                <option value="">Select status</option>
-                {EMPLOYMENT_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </Field>
-            <Field label="Are you an OFW?" required style={{ flex: "1 1 180px" }} error={hasIssue("OFW status is required.") ? "OFW status is required." : undefined}>
-              <select style={fieldInputStyle(hasIssue("OFW status is required."))} value={form.ofwStatus} onChange={e => onUpdateForm({ ofwStatus: e.target.value })}>
-                <option value="">Select status</option>
-                {OFW_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </Field>
-            <Field label="4Ps Beneficiary" required hint="Pantawid Pamilyang Pilipino Program" style={{ flex: "1 1 180px" }} error={hasIssue("Please indicate if you are a 4Ps beneficiary.") ? "Please indicate if you are a 4Ps beneficiary." : undefined}>
-              <select style={fieldInputStyle(hasIssue("Please indicate if you are a 4Ps beneficiary."))} value={form.fourPsBeneficiary} onChange={e => onUpdateForm({ fourPsBeneficiary: e.target.value })}>
-                <option value="">Select an option</option>
-                {FOUR_PS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </Field>
-          </div>
-
-          <SectionDivider title="Job Preferences" />
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Field label="Preferred Occupation" required style={{ flex: "1 1 240px" }} error={hasIssue("Preferred occupation is required.") ? "Preferred occupation is required." : undefined}>
-              <input style={fieldInputStyle(hasIssue("Preferred occupation is required."))} value={form.preferredOccupation} onChange={e => onUpdateForm({ preferredOccupation: e.target.value.toUpperCase() })} placeholder="E.G. CASHIER, OFFICE STAFF, DRIVER" />
-            </Field>
-            <Field label="Preferred Work Location" required style={{ flex: "1 1 240px" }} error={hasIssue("Preferred work location is required.") ? "Preferred work location is required." : undefined}>
-              <input style={fieldInputStyle(hasIssue("Preferred work location is required."))} value={form.preferredWorkLocation} onChange={e => onUpdateForm({ preferredWorkLocation: e.target.value.toUpperCase() })} placeholder="E.G. ROXAS CITY, CAPIZ" />
-            </Field>
-          </div>
-
-          <Field label="Language Proficiency" required error={hasIssue("Please select at least one language you're proficient in.") ? "Please select at least one language you're proficient in." : undefined}>
-            <p style={{ color: COLORS.bodyText, fontSize: "0.85rem", marginBottom: 10, marginTop: -4 }}>
-              Select all languages you can speak/write proficiently.
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              {LANGUAGE_OPTIONS.map(lang => {
-                const checked = form.languages.includes(lang);
-                const errorBorder = hasIssue("Please select at least one language you're proficient in.") && !checked;
-                return (
-                  <label key={lang} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.88rem", color: COLORS.navy, fontWeight: 600, border: `1.5px solid ${checked ? "rgba(26,29,94,0.3)" : errorBorder ? "rgba(192,21,26,0.3)" : "rgba(26,29,94,0.12)"}`, background: checked ? "rgba(26,29,94,0.05)" : "transparent", borderRadius: 999, padding: "6px 14px", transition: "all 0.15s" }}>
-                    <input type="checkbox" checked={checked} onChange={() => onToggleLanguage(lang)} style={{ width: 16, height: 16, accentColor: COLORS.navy, cursor: "pointer" }} />
-                    {lang}
-                  </label>
-                );
-              })}
-            </div>
-            {form.languages.includes("Others") && (
-              <input style={{ ...inputStyle, marginTop: 10, border: hasIssue("Please specify your other language(s).") ? "1.5px solid #c0151a" : inputStyle.border as string }} value={form.otherLanguage} onChange={e => onUpdateForm({ otherLanguage: e.target.value.toUpperCase() })} placeholder="PLEASE SPECIFY OTHER LANGUAGE(S)" />
-            )}
+          <Field label="Middle Name" required style={{ flex: "1 1 160px" }} error={hasIssue("Middle name is required.") ? "Middle name is required." : undefined}>
+            <input style={fieldInputStyle(hasIssue("Middle name is required."))} value={form.middleName} onChange={e => onUpdateForm({ middleName: e.target.value.toUpperCase() })} placeholder="SANTOS" />
           </Field>
-
-          {step1Issues.length > 0 && (
-            <div style={{ background: "rgba(192,21,26,0.05)", border: "1.5px solid rgba(192,21,26,0.2)", borderRadius: 10, padding: "14px 18px", animation: "fadeUp 0.25s ease both" }}>
-              <p style={{ color: COLORS.red, fontWeight: 700, fontSize: "0.85rem", marginBottom: 6 }}>Please fix the following before continuing:</p>
-              <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
-                {step1Issues.map((issue, i) => (
-                  <li key={i} style={{ color: COLORS.bodyText, fontSize: "0.83rem", lineHeight: 1.5 }}>{issue}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <button type="button" onClick={onNext} style={primaryButtonStyle(false)}
-              onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
-              onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}>
-              Next: Job Matching
-              <span style={{ fontSize: "1rem" }}>→</span>
-            </button>
-            <button type="button" onClick={onNavigateHome}
-              style={{ background: "transparent", border: "1.5px solid rgba(26,29,94,0.15)", color: COLORS.navy, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: "13px 20px", borderRadius: 8, fontWeight: 700, fontSize: "0.88rem", fontFamily: "'Source Sans 3', sans-serif", transition: "all 0.15s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(26,29,94,0.04)"; e.currentTarget.style.borderColor = "rgba(26,29,94,0.3)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(26,29,94,0.15)"; }}>
-              🏠 Back to Home
-            </button>
-          </div>
+          <Field label="Last Name" required style={{ flex: "1 1 200px" }} error={hasIssue("Last name is required.") ? "Last name is required." : undefined}>
+            <input style={fieldInputStyle(hasIssue("Last name is required."))} value={form.lastName} onChange={e => onUpdateForm({ lastName: e.target.value.toUpperCase() })} placeholder="DELA CRUZ" />
+          </Field>
         </div>
-      )}
+
+        {/* Email (inline three-state verification widget) + Contact */}
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <Field
+            label="Email Address"
+            required
+            style={{ flex: "1 1 240px" }}
+            error={hasIssue("Please verify your email before continuing.") ? "Please verify your email before continuing." : undefined}
+          >
+            <InlineEmailVerification
+              key={emailWidgetKey}
+              formLabel="Job Application"
+              otpUrl={JOBS_SUBMIT_URL}
+              onVerified={onEmailVerified}
+              onChangeEmail={handleEmailChangeClick}
+            />
+          </Field>
+          <Field label="Contact Number" required style={{ flex: "1 1 180px" }} error={hasIssue("Contact number is required.") ? "Contact number is required." : undefined}>
+            <input style={fieldInputStyle(hasIssue("Contact number is required."))} value={form.contact} onChange={e => onUpdateForm({ contact: e.target.value.toUpperCase() })} placeholder="09XXXXXXXXX" />
+          </Field>
+        </div>
+
+        <Field label="Address ( House No./street, District/Brgy, Municipality/City, Province )" required error={hasIssue("Address is required.") ? "Address is required." : undefined}>
+          <input
+          style={fieldInputStyle(hasIssue("Address is required."))}
+          value={form.address}
+          onChange={e => onUpdateForm({ address: e.target.value.toUpperCase() })}
+          placeholder="HOUSE NO./STREET, DISTRICT/BRGY, MUNICIPALITY/CITY, PROVINCE"
+        />
+        </Field>
+
+        <SectionDivider title="Personal Profile" />
+
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <Field label="Birthday" required style={{ flex: "1 1 180px" }} error={hasIssue("Birthday is required.") ? "Birthday is required." : undefined}>
+            <input type="date" style={fieldInputStyle(hasIssue("Birthday is required."))} value={form.birthday} onChange={e => onUpdateForm({ birthday: e.target.value })} />
+          </Field>
+          <Field label="Sex" required style={{ flex: "1 1 180px" }} error={hasIssue("Gender is required.") ? "Gender is required." : undefined}>
+            <select style={fieldInputStyle(hasIssue("Gender is required."))} value={form.gender} onChange={e => onUpdateForm({ gender: e.target.value })}>
+              <option value="">Select gender</option>
+              {GENDER_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </Field>
+          <Field label="Civil Status" required style={{ flex: "1 1 180px" }} error={hasIssue("Civil status is required.") ? "Civil status is required." : undefined}>
+            <select style={fieldInputStyle(hasIssue("Civil status is required."))} value={form.civilStatus} onChange={e => onUpdateForm({ civilStatus: e.target.value })}>
+              <option value="">Select civil status</option>
+              {CIVIL_STATUS_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </Field>
+        </div>
+
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <Field label="Disability" required style={{ flex: "1 1 180px" }} error={hasIssue("Please indicate if you have a disability.") ? "Please indicate if you have a disability." : undefined}>
+            <select style={fieldInputStyle(hasIssue("Please indicate if you have a disability."))} value={form.hasDisability} onChange={e => onUpdateForm({ hasDisability: e.target.value, ...(e.target.value !== "Yes" ? { disabilityDetails: "" } : {}) })}>
+              <option value="">Select an option</option>
+              {DISABILITY_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </Field>
+          {form.hasDisability === "Yes" && (
+            <Field label="Please specify (optional)" style={{ flex: "2 1 240px" }}>
+              <input style={inputStyle} value={form.disabilityDetails} onChange={e => onUpdateForm({ disabilityDetails: e.target.value.toUpperCase() })} placeholder="E.G. VISUAL IMPAIRMENT, MOBILITY IMPAIRMENT, ETC." />
+            </Field>
+          )}
+        </div>
+
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <Field label="Employment Status" required style={{ flex: "1 1 180px" }} error={hasIssue("Employment status is required.") ? "Employment status is required." : undefined}>
+            <select style={fieldInputStyle(hasIssue("Employment status is required."))} value={form.employmentStatus} onChange={e => onUpdateForm({ employmentStatus: e.target.value })}>
+              <option value="">Select status</option>
+              {EMPLOYMENT_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+          <Field label="Are you an OFW?" required style={{ flex: "1 1 180px" }} error={hasIssue("OFW status is required.") ? "OFW status is required." : undefined}>
+            <select style={fieldInputStyle(hasIssue("OFW status is required."))} value={form.ofwStatus} onChange={e => onUpdateForm({ ofwStatus: e.target.value })}>
+              <option value="">Select status</option>
+              {OFW_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+          <Field label="4Ps Beneficiary" required hint="Pantawid Pamilyang Pilipino Program" style={{ flex: "1 1 180px" }} error={hasIssue("Please indicate if you are a 4Ps beneficiary.") ? "Please indicate if you are a 4Ps beneficiary." : undefined}>
+            <select style={fieldInputStyle(hasIssue("Please indicate if you are a 4Ps beneficiary."))} value={form.fourPsBeneficiary} onChange={e => onUpdateForm({ fourPsBeneficiary: e.target.value })}>
+              <option value="">Select an option</option>
+              {FOUR_PS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+        </div>
+
+        <SectionDivider title="Job Preferences" />
+
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <Field label="Preferred Occupation" required style={{ flex: "1 1 240px" }} error={hasIssue("Preferred occupation is required.") ? "Preferred occupation is required." : undefined}>
+            <input style={fieldInputStyle(hasIssue("Preferred occupation is required."))} value={form.preferredOccupation} onChange={e => onUpdateForm({ preferredOccupation: e.target.value.toUpperCase() })} placeholder="E.G. CASHIER, OFFICE STAFF, DRIVER" />
+          </Field>
+          <Field label="Preferred Work Location" required style={{ flex: "1 1 240px" }} error={hasIssue("Preferred work location is required.") ? "Preferred work location is required." : undefined}>
+            <input style={fieldInputStyle(hasIssue("Preferred work location is required."))} value={form.preferredWorkLocation} onChange={e => onUpdateForm({ preferredWorkLocation: e.target.value.toUpperCase() })} placeholder="E.G. ROXAS CITY, CAPIZ" />
+          </Field>
+        </div>
+
+        <Field label="Language Proficiency" required error={hasIssue("Please select at least one language you're proficient in.") ? "Please select at least one language you're proficient in." : undefined}>
+          <p style={{ color: COLORS.bodyText, fontSize: "0.85rem", marginBottom: 10, marginTop: -4 }}>
+            Select all languages you can speak/write proficiently.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {LANGUAGE_OPTIONS.map(lang => {
+              const checked = form.languages.includes(lang);
+              const errorBorder = hasIssue("Please select at least one language you're proficient in.") && !checked;
+              return (
+                <label key={lang} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.88rem", color: COLORS.navy, fontWeight: 600, border: `1.5px solid ${checked ? "rgba(26,29,94,0.3)" : errorBorder ? "rgba(192,21,26,0.3)" : "rgba(26,29,94,0.12)"}`, background: checked ? "rgba(26,29,94,0.05)" : "transparent", borderRadius: 999, padding: "6px 14px", transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={checked} onChange={() => onToggleLanguage(lang)} style={{ width: 16, height: 16, accentColor: COLORS.navy, cursor: "pointer" }} />
+                  {lang}
+                </label>
+              );
+            })}
+          </div>
+          {form.languages.includes("Others") && (
+            <input style={{ ...inputStyle, marginTop: 10, border: hasIssue("Please specify your other language(s).") ? "1.5px solid #c0151a" : inputStyle.border as string }} value={form.otherLanguage} onChange={e => onUpdateForm({ otherLanguage: e.target.value.toUpperCase() })} placeholder="PLEASE SPECIFY OTHER LANGUAGE(S)" />
+          )}
+        </Field>
+
+        {step1Issues.length > 0 && (
+          <div style={{ background: "rgba(192,21,26,0.05)", border: "1.5px solid rgba(192,21,26,0.2)", borderRadius: 10, padding: "14px 18px", animation: "fadeUp 0.25s ease both" }}>
+            <p style={{ color: COLORS.red, fontWeight: 700, fontSize: "0.85rem", marginBottom: 6 }}>Please fix the following before continuing:</p>
+            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
+              {step1Issues.map((issue, i) => (
+                <li key={i} style={{ color: COLORS.bodyText, fontSize: "0.83rem", lineHeight: 1.5 }}>{issue}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <button type="button" onClick={onNext} style={primaryButtonStyle(false)}
+            onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
+            onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}>
+            Next: Job Matching
+            <span style={{ fontSize: "1rem" }}>→</span>
+          </button>
+          <button type="button" onClick={onNavigateHome}
+            style={{ background: "transparent", border: "1.5px solid rgba(26,29,94,0.15)", color: COLORS.navy, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: "13px 20px", borderRadius: 8, fontWeight: 700, fontSize: "0.88rem", fontFamily: "'Source Sans 3', sans-serif", transition: "all 0.15s" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "rgba(26,29,94,0.04)"; e.currentTarget.style.borderColor = "rgba(26,29,94,0.3)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(26,29,94,0.15)"; }}>
+            🏠 Back to Home
+          </button>
+        </div>
+      </div>
     </>
   );
 }

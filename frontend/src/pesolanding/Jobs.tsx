@@ -442,9 +442,17 @@ export function calculateAge(birthday: string): number | null {
 /**
  * Issues that gate the Step 1 → Step 2 transition.
  * Does NOT include school, degree, resume, or consent — those moved to Step 2.
+ *
+ * `emailVerified` is required (not optional) so every call site is forced to
+ * think about whether verification has happened yet — see JobsDesign.tsx's
+ * inline widget, which is the thing that actually sets it to true.
  */
-export function getStep1Issues(form: FormState): string[] {
+export function getStep1Issues(form: FormState, emailVerified: boolean): string[] {
   const issues: string[] = [];
+
+  if (!emailVerified) {
+    issues.push("Please verify your email before continuing.");
+  }
 
   if (!form.firstName.trim()) issues.push("First name is required.");
   if (!form.middleName.trim()) issues.push("Middle name is required.");
@@ -502,8 +510,8 @@ export function getStep1Issues(form: FormState): string[] {
  * lives here so it isn't repeated once per selected job.
  * Used at final submission time in handleSubmit.
  */
-export function getPersonalIssues(form: FormState): string[] {
-  const issues = getStep1Issues(form);
+export function getPersonalIssues(form: FormState, emailVerified: boolean): string[] {
+  const issues = getStep1Issues(form, emailVerified);
 
   if (!form.school.trim()) issues.push("School name is required.");
   if (!form.degree.trim()) issues.push("Degree/Course is required.");
@@ -730,8 +738,10 @@ export default function Jobs() {
     resetStatus();
   };
 
-  // Called by EmailVerificationGate once the OTP is confirmed. Fills the
-  // form's email field and unlocks the rest of Step 1.
+  // Called by the inline email-verification widget once the OTP is
+  // confirmed. Fills the form's email field and flips emailVerified — it no
+  // longer unmounts/replaces anything, since the widget stays mounted inside
+  // the always-visible Step 1 form now.
   const handleEmailVerified = (email: string, token: string) => {
     setForm(prev => ({ ...prev, email }));
     setVerificationToken(token);
@@ -747,10 +757,10 @@ export default function Jobs() {
     setForm(prev => ({ ...prev, email: "" }));
   };
 
-  /** Step 1 → Step 2: only validate step 1 fields (no school/degree/resume/consent). */
+  /** Step 1 → Step 2: validates step 1 fields, including email verification. */
   const handleNext = () => {
     setStep1Attempted(true);
-    const issues = getStep1Issues(form);
+    const issues = getStep1Issues(form, emailVerified);
     if (issues.length > 0) return;
     setStep(2);
   };
@@ -767,7 +777,7 @@ export default function Jobs() {
     setSubmitError(null);
     setSubmitSuccess(false);
 
-    // Second guard on top of Step 1 hiding the form until verified — submit
+    // Second guard on top of Step 1 blocking Next until verified — submit
     // can't proceed without a verified token no matter how it's triggered.
     if (!emailVerified || !verificationToken) {
       setSubmitError("Please verify your email before submitting.");
@@ -789,7 +799,7 @@ export default function Jobs() {
       return;
     }
 
-    const personalIssues = getPersonalIssues(form);
+    const personalIssues = getPersonalIssues(form, emailVerified);
 
     const results: JobResult[] = newJobIds.map(id => {
       const job       = JOB_LISTINGS.find(j => j.id === id)!;

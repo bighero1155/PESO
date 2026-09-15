@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import pesoLogo from "/assets/peso-logo.png";
-import { useNavigate } from "react-router-dom";
+import PesoNavbar from "../pesolanding/PesoNavbar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -133,54 +133,6 @@ const FAQ = [
     a: "Employers can register on this portal and post job listings, or visit our office directly. We will help match your vacancies with qualified applicants from our database.",
   },
 ];
-
-// ── Navbar ────────────────────────────────────────────────────────────────────
-
-function ContactNavbar() {
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-
-  return (
-    <nav style={{
-      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      background: "#c0151a",
-      boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
-      fontFamily: "'Source Sans 3', sans-serif",
-    }}>
-      <div style={{
-        maxWidth: 1300, margin: "0 auto",
-        display: "flex", alignItems: "center",
-        height: 58, padding: isMobile ? "0 12px" : "0 20px", gap: isMobile ? 10 : 16,
-      }}>
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            display: "flex", alignItems: "center", gap: 8,
-            background: "rgba(255,255,255,0.12)",
-            border: "1.5px solid rgba(255,255,255,0.3)",
-            borderRadius: 7, padding: isMobile ? "6px 10px" : "6px 14px",
-            color: "white", fontSize: "0.82rem", fontWeight: 600,
-            cursor: "pointer", letterSpacing: 0.3,
-            flexShrink: 0,
-          }}
-        >
-          ← {!isMobile && "Back"}
-        </button>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", minWidth: 0 }}>
-          <img src={pesoLogo} alt="PESO" style={{ width: 38, height: 38, objectFit: "contain", flexShrink: 0 }} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ color: "white", fontWeight: 800, fontSize: "0.9rem", letterSpacing: 1, whiteSpace: "nowrap" }}>P.E.S.O.</div>
-            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.52rem", letterSpacing: 0.8, textTransform: "uppercase", whiteSpace: "nowrap" }}>Roxas City</div>
-          </div>
-        </a>
-        <div style={{ flex: 1 }} />
-        {!isMobile && (
-          <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.82rem" }}>Contact Us</span>
-        )}
-      </div>
-    </nav>
-  );
-}
 
 // ── Hero Banner ───────────────────────────────────────────────────────────────
 
@@ -795,6 +747,16 @@ function ContactFooter() {
 // ── Root ──────────────────────────────────────────────────────────────────────
 
 export default function ContactPage() {
+  // Login and Register aren't wired up yet — same pattern as PesoLanding and
+  // OjtPage. Passed through so PesoNavbar renders, but they intentionally
+  // do nothing until the login/register flow is ready.
+  const handleLoginClick = () => {
+    // navigate("/login");
+  };
+  const handleRegisterClick = () => {
+    // navigate("/register");
+  };
+
   return (
     <>
       <style>{`
@@ -805,7 +767,7 @@ export default function ContactPage() {
         ::-webkit-scrollbar-thumb { background: #c0151a; border-radius: 3px; }
       `}</style>
 
-      <ContactNavbar />
+      <PesoNavbar onLoginClick={handleLoginClick} onRegisterClick={handleRegisterClick} />
       <ContactHero />
       <InfoCards />
       <MapAndForm />

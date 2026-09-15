@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import ojtHeroBg from "/assets/OJT/ojt.png";
-import ojtDoc1 from "/assets/OJT/doc1.jpg";
 import PesoNavbar from "../pesolanding/PesoNavbar";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -24,11 +23,11 @@ interface GalleryItem {
  * needs to change, the grid sizes itself from this array.
  */
 const OJT_DOCUMENTATION: GalleryItem[] = [
-  { image: ojtDoc1, alt: "OJT documentation photo 1", caption: "Orientation Briefing" },
-  { image: ojtDoc1, alt: "OJT documentation photo 2", caption: "Coordination Meeting" },
-  { image: ojtDoc1, alt: "OJT documentation photo 3", caption: "Partner Establishment Visit" },
-  { image: ojtDoc1, alt: "OJT documentation photo 4", caption: "Applicant Processing" },
-  { image: ojtDoc1, alt: "OJT documentation photo 5", caption: "Deployment Turnover" },
+  { image: "assets/OJT/doc1.jpg", alt: "OJT documentation photo 1", caption: "Orientation Briefing" },
+  { image: "assets/OJT/doc2.jpg", alt: "OJT documentation photo 2", caption: "Coordination Meeting" },
+  { image: "assets/OJT/doc3.jpg", alt: "OJT documentation photo 3", caption: "Partner Establishment Visit" },
+  { image: "assets/OJT/doc4.jpg", alt: "OJT documentation photo 4", caption: "Applicant Processing" },
+  { image: "assets/OJT/doc5.jpg", alt: "OJT documentation photo 5", caption: "Deployment Turnover" },
 ];
 
 /**
@@ -38,9 +37,14 @@ const OJT_DOCUMENTATION: GalleryItem[] = [
  * real on-the-job photos are provided.
  */
 const OJT_IN_ACTION: GalleryItem[] = [
-  { image: ojtDoc1, alt: "OJT trainee at work 1", caption: "Office & Clerical Immersion" },
-  { image: ojtDoc1, alt: "OJT trainee at work 2", caption: "Frontline Service Assistance" },
-  { image: ojtDoc1, alt: "OJT trainee at work 3", caption: "Records & Data Encoding" },
+  { image: "assets/OJT/1.jpg", alt: "OJT trainee at work 1", caption: "" },
+  { image: "assets/OJT/2.jpg", alt: "OJT trainee at work 2", caption: "" },
+  { image: "assets/OJT/3.jpg", alt: "OJT trainee at work 3", caption: "" },
+  { image: "assets/OJT/4.jpg", alt: "OJT trainee at work 4", caption: "" },
+  { image: "assets/OJT/5.jpg", alt: "OJT trainee at work 5", caption: "" },
+  { image: "assets/OJT/6.jpg", alt: "OJT trainee at work 6", caption: "" },
+  { image: "assets/OJT/7.jpg", alt: "OJT trainee at work 7", caption: "" },
+  { image: "assets/OJT/8.jpg", alt: "OJT trainee at work 8", caption: "" },
 ];
 
 const OJT_HIGHLIGHTS = [

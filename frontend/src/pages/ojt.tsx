@@ -23,11 +23,10 @@ interface GalleryItem {
  * needs to change, the grid sizes itself from this array.
  */
 const OJT_DOCUMENTATION: GalleryItem[] = [
-  { image: "assets/OJT/doc1.jpg", alt: "OJT documentation photo 1", caption: "Orientation Briefing" },
-  { image: "assets/OJT/doc2.jpg", alt: "OJT documentation photo 2", caption: "Coordination Meeting" },
-  { image: "assets/OJT/doc3.jpg", alt: "OJT documentation photo 3", caption: "Partner Establishment Visit" },
-  { image: "assets/OJT/doc4.jpg", alt: "OJT documentation photo 4", caption: "Applicant Processing" },
-  { image: "assets/OJT/doc5.jpg", alt: "OJT documentation photo 5", caption: "Deployment Turnover" },
+  { image: "assets/OJT/doc1.jpg", alt: "OJT documentation photo 1", caption: "" },
+  { image: "assets/OJT/doc2.jpg", alt: "OJT documentation photo 2", caption: "" },
+  { image: "assets/OJT/doc3.jpg", alt: "OJT documentation photo 3", caption: "" },
+  { image: "assets/OJT/doc4.jpg", alt: "OJT documentation photo 4", caption: "" },
 ];
 
 /**
@@ -45,6 +44,7 @@ const OJT_IN_ACTION: GalleryItem[] = [
   { image: "assets/OJT/6.jpg", alt: "OJT trainee at work 6", caption: "" },
   { image: "assets/OJT/7.jpg", alt: "OJT trainee at work 7", caption: "" },
   { image: "assets/OJT/8.jpg", alt: "OJT trainee at work 8", caption: "" },
+  { image: "assets/OJT/9.jpg", alt: "OJT trainee at work 9", caption: "" },
 ];
 
 const OJT_HIGHLIGHTS = [

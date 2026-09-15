@@ -123,7 +123,7 @@ function OjtHero() {
             marginBottom: 26,
           }}
         >
-          OJT Immersion and Apprenticeship Facilitation
+          OJT/Immersion/Apprenticeship Facilitation
         </h1>
         <div style={{ width: 100, height: 4, background: "#c0151a", borderRadius: 2, margin: "0 auto 28px" }} />
         <p

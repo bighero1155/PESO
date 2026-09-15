@@ -377,8 +377,8 @@ function OjtInAction({ onOpen }: { onOpen: (item: GalleryItem) => void }) {
   return (
     <section style={{ padding: "80px 24px", background: "#f4f4f6" }}>
       <div style={container}>
-        <span style={sectionLabel}>On the Job</span>
-        <h2 style={sectionTitle}>OJT's Work in Action</h2>
+        <span style={sectionLabel}>On the Job/Immersion/Apprenticeship Facilitation</span>
+        <h2 style={sectionTitle}>Work in Action</h2>
         <p style={sectionSub}>
           Our trainees in their host establishments — gaining hands-on experience in real
           workplaces across the province.

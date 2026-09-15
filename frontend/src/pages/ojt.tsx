@@ -27,6 +27,7 @@ const OJT_DOCUMENTATION: GalleryItem[] = [
   { image: "assets/OJT/doc2.jpg", alt: "OJT documentation photo 2", caption: "" },
   { image: "assets/OJT/doc3.jpg", alt: "OJT documentation photo 3", caption: "" },
   { image: "assets/OJT/doc4.jpg", alt: "OJT documentation photo 4", caption: "" },
+  { image: "assets/OJT/doc5.jpg", alt: "OJT documentation photo 4", caption: "" },
 ];
 
 /**
@@ -377,7 +378,7 @@ function OjtInAction({ onOpen }: { onOpen: (item: GalleryItem) => void }) {
     <section style={{ padding: "80px 24px", background: "#f4f4f6" }}>
       <div style={container}>
         <span style={sectionLabel}>On the Job</span>
-        <h2 style={sectionTitle}>OJT Trainees at Work</h2>
+        <h2 style={sectionTitle}>Work in Action</h2>
         <p style={sectionSub}>
           Our trainees in their host establishments — gaining hands-on experience in real
           workplaces across the province.

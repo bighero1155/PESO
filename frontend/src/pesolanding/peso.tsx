@@ -130,7 +130,7 @@ const TRUST_BADGES: TrustBadge[] = [
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 function Hero() {
-  const PESO_LOGO_OFFSET_Y = -20;   // negative = up, positive = down — edit me
+  const PESO_LOGO_OFFSET_Y = -15;   // negative = up, positive = down — edit me
   const CAPIZ_SEAL_OFFSET_Y = 20;   // negative = up, positive = down — edit me
 
   return (

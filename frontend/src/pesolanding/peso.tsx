@@ -158,8 +158,8 @@ function Hero() {
         <div
           style={{
             flexShrink: 0,
-            width: 483,
-            height: 483,
+            width: 393,
+            height: 393,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -185,8 +185,8 @@ function Hero() {
         <div
           style={{
             flexShrink: 0,
-            width: 400,
-            height: 400,
+            width: 310,
+            height: 310,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

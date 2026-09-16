@@ -130,9 +130,6 @@ const TRUST_BADGES: TrustBadge[] = [
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 function Hero() {
-  const PESO_LOGO_OFFSET_Y = -20;   // negative = up, positive = down — edit me
-  const CAPIZ_SEAL_OFFSET_Y = 20;   // negative = up, positive = down — edit me
-
   return (
     <section style={{ marginTop: 58, minHeight: "calc(100vh - 56px)", position: "relative", overflow: "hidden", display: "flex", alignItems: "center" }}>
       <img src={heroBg} alt="PESO Office" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", zIndex: 0 }} />
@@ -152,6 +149,12 @@ function Hero() {
           flexWrap: "wrap",
         }}
       >
+        {/* PESO logo + Capiz Seal.
+            The PESO artwork has noticeably more built-in transparent padding
+            than the Capiz seal file, so at identical box sizes its visible
+            circle renders smaller. Scaling it up (1.35x) compensates so both
+            seals read as the same physical size — adjust SCALE below if the
+            source files change. Wide gap keeps them from crowding. */}
         <div
           style={{
             flexShrink: 0,
@@ -162,7 +165,6 @@ function Hero() {
             justifyContent: "center",
             overflow: "visible",
             animation: "fadeIn 0.8s ease both",
-            transform: `translateY(${PESO_LOGO_OFFSET_Y}px)`,
           }}
         >
           <img
@@ -190,7 +192,6 @@ function Hero() {
             justifyContent: "center",
             overflow: "visible",
             animation: "fadeIn 0.8s ease both",
-            transform: `translateY(${CAPIZ_SEAL_OFFSET_Y}px)`,
           }}
         >
           <img

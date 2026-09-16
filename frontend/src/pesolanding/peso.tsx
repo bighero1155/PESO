@@ -130,11 +130,24 @@ const TRUST_BADGES: TrustBadge[] = [
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 function Hero() {
-  const PESO_LOGO_OFFSET_Y = 20;   // negative = up, positive = down — edit me
-  const CAPIZ_SEAL_OFFSET_Y = 20;   // negative = up, positive = down — edit me
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Small vertical-nudge knobs, kept around in case the source art ever
+  // needs a manual correction — 0 means no nudge, since alignItems: "center"
+  // on the row already keeps both boxes' centers level with each other.
+  const PESO_LOGO_OFFSET_Y = 0;
+  const CAPIZ_SEAL_OFFSET_Y = 0;
 
   return (
-    <section style={{ marginTop: 58, minHeight: "calc(100vh - 56px)", position: "relative", overflow: "hidden", display: "flex", alignItems: "center" }}>
+    <section style={{ marginTop: 58, minHeight: isMobile ? "auto" : "calc(100vh - 56px)", position: "relative", overflow: "hidden", display: "flex", alignItems: "center" }}>
       <img src={heroBg} alt="PESO Office" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", zIndex: 0 }} />
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.52)", zIndex: 2 }} />
       <div
@@ -143,20 +156,28 @@ function Hero() {
           zIndex: 3,
           maxWidth: 1100,
           margin: "0 auto",
-          padding: "60px 32px",
+          padding: isMobile ? "56px 24px" : "60px 32px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 290,
-          width: "100%",
+          flexDirection: isMobile ? "column" : "row",
           flexWrap: "wrap",
+          gap: isMobile ? 28 : "clamp(40px, 8vw, 290px)",
+          width: "100%",
         }}
       >
+        {/* PESO logo + Capiz Seal.
+            The PESO artwork has noticeably more built-in transparent padding
+            than the Capiz seal file, so at identical box sizes its visible
+            circle renders smaller. The two clamp() sizes below keep the same
+            393:310 ratio at every viewport width so that relationship holds
+            from desktop all the way down to mobile, where they stack in a
+            column instead of squeezing into a row. */}
         <div
           style={{
             flexShrink: 0,
-            width: 393,
-            height: 393,
+            width: "clamp(180px, 34vw, 393px)",
+            height: "clamp(180px, 34vw, 393px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -183,8 +204,8 @@ function Hero() {
         <div
           style={{
             flexShrink: 0,
-            width: 310,
-            height: 310,
+            width: "clamp(142px, 26.8vw, 310px)",
+            height: "clamp(142px, 26.8vw, 310px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -235,7 +256,7 @@ function MarqueeBar() {
 
 function TrustBadges() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 24, marginBottom: 44 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(420px, 100%), 1fr))", gap: 24, marginBottom: 44 }}>
       {TRUST_BADGES.map((badge, i) => (
         <div
           key={badge.label ?? `badge-${i}`}
@@ -281,7 +302,7 @@ function MandateVisionMission() {
     <section style={{ padding: "70px 24px 0", background: "white" }}>
       <div style={container}>
         <TrustBadges />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
           {MVM_CARDS.map((c) => (
             <div key={c.label} style={{ background: "white", borderRadius: 12, padding: "26px 24px", border: "1px solid rgba(26,29,94,0.08)", borderTop: "4px solid #c0151a", boxShadow: "0 4px 20px rgba(26,29,94,0.06)", textAlign: "left" }}>
               <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(192,21,26,0.08)", border: "2px solid rgba(192,21,26,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", marginBottom: 14 }}>{c.icon}</div>
@@ -387,7 +408,7 @@ function TriviaSection() {
     <section style={{ padding: "90px 24px", background: "linear-gradient(160deg, #0f1240 0%, #1a1d5e 60%, #0f1240 100%)", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "28px 28px", zIndex: 0, pointerEvents: "none" }} />
       <div style={{ ...container, position: "relative", zIndex: 1 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 40, alignItems: "flex-start", marginBottom: 52 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: 40, alignItems: "flex-start", marginBottom: 52 }}>
           <div>
             <p style={{ fontFamily: "'Playfair Display', serif", color: "#f5c842", fontSize: "1.3rem", fontStyle: "italic", fontWeight: 400, marginBottom: 4 }}>Trivia about the</p>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(3rem, 7vw, 5rem)", color: "white", lineHeight: 1, marginBottom: 20, letterSpacing: 1 }}>PESO</h2>
@@ -405,7 +426,7 @@ function TriviaSection() {
           <div style={{ background: "#1a1d5e", borderBottom: "2px solid rgba(232,168,0,0.4)", padding: "14px 24px", textAlign: "center" }}>
             <span style={{ color: "#f5c842", fontWeight: 700, fontSize: "0.85rem", letterSpacing: 3, textTransform: "uppercase" }}>WHAT EACH ELEMENT MEANS</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", background: "rgba(255,255,255,0.03)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", background: "rgba(255,255,255,0.03)" }}>
             {LOGO_ELEMENTS.map((el, i) => (
               <div key={el.title} style={{ display: "flex", gap: 16, alignItems: "flex-start", padding: "22px 24px", borderBottom: i < LOGO_ELEMENTS.length - 2 ? "1px solid rgba(255,255,255,0.07)" : "none", borderRight: i % 2 === 0 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
                 <div style={{ width: 46, height: 46, borderRadius: "50%", background: `${el.color}22`, border: `2px solid ${el.color}55`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0 }}>{el.icon}</div>
@@ -473,7 +494,7 @@ function Programs() {
         <span style={sectionLabel}>Government Programs</span>
         <h2 style={sectionTitle}>Special Employment Programs</h2>
         <p style={sectionSub}>We implement various DOLE programs designed to address specific employment needs across different sectors.</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, marginTop: 52 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))", gap: 20, marginTop: 52 }}>
           {PROGRAMS.map((p) => (<ProgramItem key={p.num} {...p} />))}
         </div>
       </div>
@@ -499,7 +520,7 @@ function ProgramItem({ num, title, description }: Program) {
 function Footer() {
   return (
     <footer id="about" style={{ background: "#1a1d5e", color: "rgba(255,255,255,0.6)", padding: "48px 24px 28px" }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 40, marginBottom: 40 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: 40, marginBottom: 40 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
             <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>

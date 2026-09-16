@@ -158,13 +158,14 @@ function Hero() {
         <div
           style={{
             flexShrink: 0,
-            width: 383,
-            height: 383,
+            width: 483,
+            height: 483,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             overflow: "visible",
             animation: "fadeIn 0.8s ease both",
+            marginTop: -5,
           }}
         >
           <img
@@ -185,8 +186,8 @@ function Hero() {
         <div
           style={{
             flexShrink: 0,
-            width: 300,
-            height: 300,
+            width: 400,
+            height: 400,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

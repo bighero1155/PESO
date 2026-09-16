@@ -25,10 +25,15 @@ interface MVMCard {
   text: string;
 }
 
+/**
+ * A trust-badge slot. `image`/`alt`/`label` are optional so a slot can be
+ * text-only — the PESO Act description below has no logo of its own, it
+ * just occupies the position where the Capiz Seal badge used to sit.
+ */
 interface TrustBadge {
-  image: string;
-  alt: string;
-  label: string;
+  image?: string;
+  alt?: string;
+  label?: string;
   text: string;
 }
 
@@ -101,16 +106,18 @@ const MVM_CARDS: MVMCard[] = [
   { icon: "🎯", label: "Mission", text: "We are committed to ensure prompt, timely and efficient delivery of employment services and provision of employment related information that will contribute to the poverty alleviation program of the Capiz Provincial Government." },
 ];
 
-// Trust badges shown above Mandate/Vision/Mission — the Provincial Seal
-// establishes PESO Capiz as an office of the Provincial Government, and the
-// DPO/DPS mark signals Data Privacy Act compliance for applicants submitting
-// personal information through this portal.
+// Trust badges shown above Mandate/Vision/Mission.
+//
+// The first slot used to show the Capiz Seal + a short blurb — that logo has
+// moved up into the Hero (next to the PESO logo), so this slot now carries
+// the official PESO Act description instead (text-only, no image).
+//
+// The second slot is unchanged: the DPO/DPS mark signals Data Privacy Act
+// compliance for applicants submitting personal information through this
+// portal.
 const TRUST_BADGES: TrustBadge[] = [
   {
-    image: capizSeal,
-    alt: "Seal of the Province of Capiz",
-    label: "Provincial Government of Capiz",
-    text: "PESO Capiz operates under the Provincial Government of Capiz as a local employment facilitation office, working hand-in-hand with the Department of Labor and Employment to serve job seekers across the province.",
+    text: "The Public Employment Service Office (PESO) is a non-fee charging multi-employment service facility or entity established or accredited pursuant to Republic Act No. 8759, otherwise known as the PESO Act of 1999. The Act provides that in order to carry out full employment and equality of employment opportunities for all, and to strengthen and expand the existing employment facilitation service machinery of the government particularly at the local levels, there shall be established in all capital towns of provinces, key cities, and other strategic areas a Public Employment Service Office.",
   },
   {
     image: dpoDpsLogo,
@@ -127,15 +134,49 @@ function Hero() {
     <section style={{ marginTop: 58, minHeight: "calc(100vh - 56px)", position: "relative", overflow: "hidden", display: "flex", alignItems: "center" }}>
       <img src={heroBg} alt="PESO Office" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", zIndex: 0 }} />
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.52)", zIndex: 2 }} />
-      <div style={{ position: "relative", zIndex: 3, maxWidth: 1100, margin: "0 auto", padding: "60px 32px", display: "flex", alignItems: "center", gap: 60, width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 3,
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: "60px 32px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 60,
+          width: "100%",
+          flexWrap: "wrap",
+        }}
+      >
+        {/* PESO logo + Capiz Seal — same size, side by side, no labels */}
         <div style={{ flexShrink: 0, animation: "fadeIn 0.8s ease both" }}>
-          <img src={pesoLogo} alt="PESO Official Seal" style={{ width: 420, height: 420, objectFit: "contain", display: "block", filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))", animation: "pulseGlow 4s ease-in-out infinite" }} />
+          <img
+            src={pesoLogo}
+            alt="PESO Official Seal"
+            style={{
+              width: 300,
+              height: 300,
+              objectFit: "contain",
+              display: "block",
+              filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))",
+              animation: "pulseGlow 4s ease-in-out infinite",
+            }}
+          />
         </div>
-        <div style={{ flex: 1, minWidth: 280, maxWidth: 620, textAlign: "center", animation: "fadeUp 0.9s ease 0.2s both" }}>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(3rem, 7vw, 5.5rem)", color: "white", lineHeight: 1, marginBottom: 28, textShadow: "0 2px 20px rgba(0,0,0,0.5)", letterSpacing: 2 }}>PESO</h1>
-          <p style={{ color: "rgba(255,255,255,0.88)", fontSize: "clamp(0.92rem, 1.5vw, 1.08rem)", lineHeight: 1.85, fontWeight: 300, margin: "0 auto", maxWidth: 560, textShadow: "0 1px 6px rgba(0,0,0,0.4)" }}>
-            The Public Employment Service Office (PESO) is a non-fee charging multi-employment service facility or entity established or accredited pursuant to Republic Act No. 8759, otherwise known as the PESO Act of 1999. The Act provides that in order to carry out full employment and equality of employment opportunities for all, and to strengthen and expand the existing employment facilitation service machinery of the government particularly at the local levels, there shall be established in all capital towns of provinces, key cities, and other strategic areas a Public Employment Service Office.
-          </p>
+        <div style={{ flexShrink: 0, animation: "fadeIn 0.8s ease 0.1s both" }}>
+          <img
+            src={capizSeal}
+            alt="Seal of the Province of Capiz"
+            style={{
+              width: 300,
+              height: 300,
+              objectFit: "contain",
+              display: "block",
+              filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))",
+              animation: "pulseGlow 4s ease-in-out infinite",
+            }}
+          />
         </div>
       </div>
     </section>
@@ -157,17 +198,17 @@ function MarqueeBar() {
   );
 }
 
-// ── Trust Badges (Provincial Seal + DPO/DPS) ──────────────────────────────────
+// ── Trust Badges (PESO Act description + DPO/DPS) ─────────────────────────────
 // Sits at the very top of the Mandate/Vision/Mission section, above the MVM
-// cards, to establish who PESO Capiz answers to (the Province) and how
-// applicant data submitted through this site is safeguarded (the DPO/DPS).
+// cards. The first slot is text-only (the official PESO Act description);
+// the second still carries the DPO/DPS logo and blurb.
 
 function TrustBadges() {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 24, marginBottom: 44 }}>
-      {TRUST_BADGES.map((badge) => (
+      {TRUST_BADGES.map((badge, i) => (
         <div
-          key={badge.label}
+          key={badge.label ?? `badge-${i}`}
           style={{
             display: "flex",
             alignItems: "center",
@@ -176,20 +217,26 @@ function TrustBadges() {
             padding: "22px 26px",
           }}
         >
-          <img
-            src={badge.image}
-            alt={badge.alt}
-            style={{
-              width: 200,
-              height: 200,
-              objectFit: "contain",
-              flexShrink: 0,
-              borderRadius: 8,
-            }}
-          />
+          {badge.image && (
+            <img
+              src={badge.image}
+              alt={badge.alt}
+              style={{
+                width: 200,
+                height: 200,
+                objectFit: "contain",
+                flexShrink: 0,
+                borderRadius: 8,
+              }}
+            />
+          )}
           <div>
-            <h4 style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.98rem", color: "#1a1d5e", marginBottom: 6, letterSpacing: 0.2 }}>{badge.label}</h4>
-            <p style={{ fontSize: "0.84rem", color: "#5a5a7a", lineHeight: 1.6, margin: 0 }}>{badge.text}</p>
+            {badge.label && (
+              <h4 style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.98rem", color: "#1a1d5e", marginBottom: 6, letterSpacing: 0.2 }}>
+                {badge.label}
+              </h4>
+            )}
+            <p style={{ fontSize: "0.86rem", color: "#5a5a7a", lineHeight: 1.7, margin: 0 }}>{badge.text}</p>
           </div>
         </div>
       ))}

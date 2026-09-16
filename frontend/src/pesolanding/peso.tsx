@@ -144,7 +144,7 @@ function Hero() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 140,
+          gap: 170,
           width: "100%",
           flexWrap: "wrap",
         }}
@@ -186,8 +186,8 @@ function Hero() {
         <div
           style={{
             flexShrink: 0,
-            width: 300,
-            height: 300,
+            width: 350,
+            height: 350,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -196,7 +196,7 @@ function Hero() {
         >
           <img
             src={capizSeal}
-            alt="Seal of the Province of Capiz"
+            alt="PESO Official Seal"
             style={{
               maxWidth: "100%",
               maxHeight: "100%",
@@ -204,6 +204,7 @@ function Hero() {
               height: "auto",
               objectFit: "contain",
               display: "block",
+              transform: "scale(1.35)",
               filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))",
               animation: "pulseGlow 4s ease-in-out infinite",
             }}

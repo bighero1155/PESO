@@ -144,14 +144,17 @@ function Hero() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 100,
+          gap: 140,
           width: "100%",
           flexWrap: "wrap",
         }}
       >
-        {/* PESO logo + Capiz Seal — identical fixed-size boxes so both read as
-            the same size even if one source image has more built-in padding
-            than the other; wide gap keeps them from crowding each other. */}
+        {/* PESO logo + Capiz Seal.
+            The PESO artwork has noticeably more built-in transparent padding
+            than the Capiz seal file, so at identical box sizes its visible
+            circle renders smaller. Scaling it up (1.35x) compensates so both
+            seals read as the same physical size — adjust SCALE below if the
+            source files change. Wide gap keeps them from crowding. */}
         <div
           style={{
             flexShrink: 0,
@@ -160,6 +163,7 @@ function Hero() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            overflow: "visible",
             animation: "fadeIn 0.8s ease both",
           }}
         >
@@ -173,6 +177,7 @@ function Hero() {
               height: "auto",
               objectFit: "contain",
               display: "block",
+              transform: "scale(1.35)",
               filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))",
               animation: "pulseGlow 4s ease-in-out infinite",
             }}

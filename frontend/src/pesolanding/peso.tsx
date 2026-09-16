@@ -193,6 +193,7 @@ function Hero() {
             justifyContent: "center",
             overflow: "visible",
             animation: "fadeIn 0.8s ease both",
+            marginTop: -5,
           }}
         >
           <img

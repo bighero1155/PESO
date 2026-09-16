@@ -144,19 +144,33 @@ function Hero() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 60,
+          gap: 100,
           width: "100%",
           flexWrap: "wrap",
         }}
       >
-        {/* PESO logo + Capiz Seal — same size, side by side, no labels */}
-        <div style={{ flexShrink: 0, animation: "fadeIn 0.8s ease both" }}>
+        {/* PESO logo + Capiz Seal — identical fixed-size boxes so both read as
+            the same size even if one source image has more built-in padding
+            than the other; wide gap keeps them from crowding each other. */}
+        <div
+          style={{
+            flexShrink: 0,
+            width: 300,
+            height: 300,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            animation: "fadeIn 0.8s ease both",
+          }}
+        >
           <img
             src={pesoLogo}
             alt="PESO Official Seal"
             style={{
-              width: 300,
-              height: 300,
+              maxWidth: "100%",
+              maxHeight: "100%",
+              width: "auto",
+              height: "auto",
               objectFit: "contain",
               display: "block",
               filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))",
@@ -164,13 +178,25 @@ function Hero() {
             }}
           />
         </div>
-        <div style={{ flexShrink: 0, animation: "fadeIn 0.8s ease 0.1s both" }}>
+        <div
+          style={{
+            flexShrink: 0,
+            width: 300,
+            height: 300,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            animation: "fadeIn 0.8s ease 0.1s both",
+          }}
+        >
           <img
             src={capizSeal}
             alt="Seal of the Province of Capiz"
             style={{
-              width: 300,
-              height: 300,
+              maxWidth: "100%",
+              maxHeight: "100%",
+              width: "auto",
+              height: "auto",
               objectFit: "contain",
               display: "block",
               filter: "drop-shadow(0 0 30px rgba(255,255,255,0.3)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))",

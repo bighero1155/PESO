@@ -144,7 +144,7 @@ function Hero() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 200,
+          gap: 260,
           width: "100%",
           flexWrap: "wrap",
         }}
@@ -190,7 +190,8 @@ function Hero() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            animation: "fadeIn 0.8s ease 0.1s both",
+            overflow: "visible",
+            animation: "fadeIn 0.8s ease both",
           }}
         >
           <img

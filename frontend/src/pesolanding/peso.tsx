@@ -143,8 +143,8 @@ function Hero() {
   // Small vertical-nudge knobs, kept around in case the source art ever
   // needs a manual correction — 0 means no nudge, since alignItems: "center"
   // on the row already keeps both boxes' centers level with each other.
-  const PESO_LOGO_OFFSET_Y = 0;
-  const CAPIZ_SEAL_OFFSET_Y = -60;
+  const PESO_LOGO_OFFSET_Y = 100;
+  const CAPIZ_SEAL_OFFSET_Y = 0;
 
   return (
     <section style={{ marginTop: 58, minHeight: isMobile ? "auto" : "calc(100vh - 56px)", position: "relative", overflow: "hidden", display: "flex", alignItems: "center" }}>

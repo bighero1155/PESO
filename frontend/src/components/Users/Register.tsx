@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AxiosInstance from "../../auth/axiosInstance";
 import { mergeErrors, FieldErrors } from "../../Errors/UserFieldErrors";
+import { useEmailVerification } from "../../../email/Emailverification";
+
+// ← Point this at your relay's deployed /exec URL (same one used for
+// RELAY_URL in Laravel's .env / Render env — sendOtp/verifyOtp are public
+// actions on that same script, no secret needed for them).
+const REGISTER_OTP_URL = "https://script.google.com/macros/s/AKfycbwy72F0BaqfAJIhshKY5EsvBnrwq9Rib-IJDnVVKVOeDMncQeTAYeml8PQn-Bl6ySNy/exec";
 
 type Role = "applicant" | "employer";
 
@@ -61,80 +67,6 @@ const errorStyle: React.CSSProperties = {
   fontSize: "0.75rem",
   marginTop: 4,
   fontWeight: 600,
-};
-
-// ── ResendButton ──────────────────────────────────────────────────────────────
-
-const ResendButton: React.FC<{ email: string }> = ({ email }) => {
-  const [sent, setSent] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [resendError, setResendError] = useState("");
-
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldown]);
-
-  const handleResend = async () => {
-    setLoading(true);
-    setResendError("");
-    setSent(false);
-    try {
-      await AxiosInstance.post("/email/resend", { email });
-      setSent(true);
-      setCooldown(60);
-    } catch (err: any) {
-      if (err.response?.status === 400) {
-        setResendError("This email is already verified. You can log in.");
-      } else if (err.response?.status === 429) {
-        setResendError("Too many requests. Please wait a minute.");
-        setCooldown(60);
-      } else {
-        setResendError("Failed to resend. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ marginTop: 20 }}>
-      {sent && (
-        <p style={{ color: "#16a34a", fontSize: "0.82rem", marginBottom: 10, fontWeight: 600 }}>
-          ✅ Resent! Check your inbox (and spam folder).
-        </p>
-      )}
-      {resendError && (
-        <p style={{ color: colors.red, fontSize: "0.82rem", marginBottom: 10, fontWeight: 600 }}>
-          ⚠️ {resendError}
-        </p>
-      )}
-      <button
-        onClick={handleResend}
-        disabled={loading || cooldown > 0}
-        style={{
-          background: cooldown > 0 ? "#e4e4ee" : colors.navy,
-          color: cooldown > 0 ? colors.muted : "white",
-          border: "none",
-          borderRadius: 8,
-          padding: "11px 24px",
-          fontWeight: 700,
-          fontSize: "0.87rem",
-          cursor: cooldown > 0 ? "not-allowed" : "pointer",
-          transition: "all 0.2s",
-          fontFamily: "'Source Sans 3', sans-serif",
-        }}
-      >
-        {loading
-          ? "Sending..."
-          : cooldown > 0
-          ? `Resend in ${cooldown}s`
-          : "Resend Verification Email"}
-      </button>
-    </div>
-  );
 };
 
 // ── Field ─────────────────────────────────────────────────────────────────────
@@ -212,6 +144,110 @@ function PasswordField({
   );
 }
 
+// ── EmailOtpStep (new) ─────────────────────────────────────────────────────────
+// Reuses the same useEmailVerification hook Jobs.tsx uses, styled to match
+// this wizard's own Field/button aesthetic instead of the standalone
+// EmailVerificationGate card.
+
+function EmailOtpStep({
+  email,
+  onVerified,
+}: {
+  email: string;
+  onVerified: (token: string) => void;
+}) {
+  const { status, error, token, cooldown, sendCode, verifyCode } = useEmailVerification(REGISTER_OTP_URL);
+  const [code, setCode] = useState("");
+  const sentOnceRef = React.useRef(false);
+
+  useEffect(() => {
+    if (!sentOnceRef.current && email) {
+      sentOnceRef.current = true;
+      sendCode(email, "PESO Capiz Registration");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
+
+  useEffect(() => {
+    if (status === "verified" && token) {
+      onVerified(token);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, token]);
+
+  const handleVerify = () => {
+    if (code.length === 6 && status !== "verifying") verifyCode(email, code.trim());
+  };
+
+  if (status === "verified") {
+    return (
+      <div style={{
+        background: "#dcfce7", color: "#16a34a", border: "1.5px solid currentColor",
+        borderRadius: 8, padding: "14px 16px", fontSize: "0.9rem", fontWeight: 600,
+      }}>
+        ✅ Email verified — {email}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p style={{ color: colors.muted, fontSize: "0.9rem", marginBottom: 16, lineHeight: 1.6 }}>
+        {status === "sending"
+          ? `Sending a code to ${email}…`
+          : `We sent a 6-digit code to ${email}. Enter it below.`}
+      </p>
+
+      <label style={labelStyle}>Verification Code</label>
+      <input
+        value={code}
+        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        onKeyDown={(e) => { if (e.key === "Enter") handleVerify(); }}
+        placeholder="6-digit code"
+        style={{
+          ...inputStyle,
+          marginBottom: 12,
+          letterSpacing: 6,
+          fontSize: "1.15rem",
+          textAlign: "center",
+          fontWeight: 700,
+        }}
+      />
+
+      <button
+        type="button"
+        className="reg-btn reg-btn-navy"
+        onClick={handleVerify}
+        disabled={code.length !== 6 || status === "verifying"}
+        style={{ width: "100%", marginBottom: 10 }}
+      >
+        {status === "verifying" ? "Verifying…" : "Verify Code"}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => sendCode(email, "PESO Capiz Registration")}
+        disabled={cooldown > 0 || status === "sending" || status === "verifying"}
+        style={{
+          width: "100%", background: "transparent", border: "none",
+          color: cooldown > 0 ? colors.muted : colors.red,
+          fontSize: "0.85rem", fontWeight: 700,
+          cursor: cooldown > 0 ? "default" : "pointer",
+          fontFamily: "'Source Sans 3', sans-serif", padding: "4px 0",
+        }}
+      >
+        {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+      </button>
+
+      {error && (
+        <p style={{ color: colors.red, fontSize: "0.82rem", marginTop: 12, marginBottom: 0, lineHeight: 1.5 }}>
+          ⚠️ {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── Main Register ─────────────────────────────────────────────────────────────
 
 const Register: React.FC = () => {
@@ -220,6 +256,7 @@ const Register: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [registered, setRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormDataType>({
     username: "", first_name: "", middle_name: "", last_name: "",
@@ -244,16 +281,18 @@ const Register: React.FC = () => {
     setMessage(null);
   };
 
+  // Step 3 is the new email-OTP step — no direct input fields to validate,
+  // it's gated on verificationToken instead (see nextStep).
   const stepFields: Record<number, FormField[]> = {
     1: ["first_name", "middle_name", "last_name", "username"],
     2: ["email", "age", "contact_number", "address"],
-    3: ["password", "confirm_password"],
+    4: ["password", "confirm_password"],
   };
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const validateStep = (): boolean => {
-    const fields = stepFields[currentStep];
+    const fields = stepFields[currentStep] || [];
     const newErrors: FieldErrors = {};
     const optional: FormField[] = ["middle_name", "contact_number", "address"];
 
@@ -264,7 +303,7 @@ const Register: React.FC = () => {
       }
     });
 
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       if (formData.password !== formData.confirm_password) {
         newErrors.confirm_password = ["Passwords do not match"];
       }
@@ -275,6 +314,11 @@ const Register: React.FC = () => {
   };
 
   const nextStep = () => {
+    if (currentStep === 3) {
+      // Email OTP step — only allowed through once verified
+      if (verificationToken) setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+      return;
+    }
     if (validateStep()) setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
@@ -293,30 +337,44 @@ const Register: React.FC = () => {
     e.preventDefault();
     if (!validateStep()) return;
 
+    if (!verificationToken) {
+      setMessage({ type: "error", text: "Please verify your email before creating your account." });
+      setCurrentStep(3);
+      return;
+    }
+
     setIsLoading(true);
     setMessage(null);
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirm_password: _, ...payload } = formData;
-      await AxiosInstance.post("/register", payload);
+      await AxiosInstance.post("/register", {
+        ...payload,
+        verificationToken,
+      });
 
-      // Show "check your email" screen instead of redirecting
       setRegisteredEmail(formData.email);
       setRegistered(true);
     } catch (error: any) {
       if (error.response?.status === 422) {
         const serverErrors = error.response.data.errors;
         setErrors(mergeErrors({}, serverErrors));
-        const fields = Object.keys(serverErrors);
+        const fields = Object.keys(serverErrors || {});
         if (fields.includes("username"))
           setMessage({ type: "error", text: "Username is already taken." });
         else if (fields.includes("email"))
-          setMessage({ type: "error", text: "Email is already registered." });
+          setMessage({ type: "error", text: "Email is already registered, or verification expired — please verify again." });
         else if (fields.includes("contact_number"))
           setMessage({ type: "error", text: "Contact number is already in use." });
         else
           setMessage({ type: "error", text: "Please fix the errors below." });
+
+        // If it was the OTP that failed server-side, send them back to re-verify
+        if (fields.includes("email") && !serverErrors.email?.[0]?.includes("already registered")) {
+          setVerificationToken(null);
+          setCurrentStep(3);
+        }
       } else if (error.response?.status === 500) {
         setMessage({ type: "error", text: "Server error. Please try again later." });
       } else {
@@ -332,10 +390,11 @@ const Register: React.FC = () => {
   const stepLabels: Record<number, string> = {
     1: "Personal Info",
     2: "Contact Details",
-    3: "Set Password",
+    3: "Verify Email",
+    4: "Set Password",
   };
 
-  // ── Check Your Email Screen ───────────────────────────────────────────────
+  // ── Check Your Email Screen (post-registration success) ───────────────────
 
   if (registered) {
     return (
@@ -374,21 +433,20 @@ const Register: React.FC = () => {
             boxShadow: "0 32px 80px rgba(0,0,0,0.4)",
             animation: "fadeUp 0.45s ease both",
           }}>
-            {/* Header */}
             <div style={{ background: colors.navy, padding: "36px 32px", textAlign: "center", position: "relative" }}>
               <div style={{
                 position: "absolute", top: 0, left: 0, right: 0, height: 4,
                 background: `linear-gradient(90deg, ${colors.red}, ${colors.gold})`,
               }} />
-              <div style={{ fontSize: "3.5rem", animation: "pulse 2s ease infinite" }}>📧</div>
+              <div style={{ fontSize: "3.5rem", animation: "pulse 2s ease infinite" }}>✅</div>
               <h2 style={{
                 fontFamily: "'Playfair Display', serif", color: "white",
                 fontSize: "1.6rem", fontWeight: 700, marginTop: 14, lineHeight: 1.2,
               }}>
-                Check Your Email
+                Account Created
               </h2>
               <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", marginTop: 6 }}>
-                Verification link sent to
+                Verified as
               </p>
               <p style={{
                 color: colors.goldLight, fontWeight: 700, fontSize: "0.95rem",
@@ -398,27 +456,18 @@ const Register: React.FC = () => {
               </p>
             </div>
 
-            {/* Body */}
             <div style={{ padding: "28px 32px 32px", textAlign: "center" }}>
               <p style={{ color: colors.muted, fontSize: "0.9rem", lineHeight: 1.7, marginBottom: 8 }}>
-                We sent a verification link to your email. Click it to activate
-                your account before logging in.
+                Your email is already verified — you can log in right away.
               </p>
-              <p style={{ color: colors.muted, fontSize: "0.82rem", lineHeight: 1.6 }}>
-                Don't see it? Check your <strong>spam or junk folder</strong>.
-              </p>
-
-              <ResendButton email={registeredEmail} />
 
               <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${colors.border}` }}>
                 <Link
                   to="/login"
-                  style={{
-                    color: colors.navy, fontWeight: 700, fontSize: "0.87rem",
-                    textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6,
-                  }}
+                  className="reg-btn reg-btn-navy"
+                  style={{ textDecoration: "none", display: "inline-block" }}
                 >
-                  ← Back to Login
+                  Go to Login →
                 </Link>
               </div>
             </div>
@@ -514,7 +563,6 @@ const Register: React.FC = () => {
           position: "relative", zIndex: 1, animation: "fadeUp 0.45s ease both",
           overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.4)",
         }}>
-          {/* Header */}
           <div style={{
             background: colors.navy, padding: "28px 32px",
             position: "relative", overflow: "hidden",
@@ -581,7 +629,6 @@ const Register: React.FC = () => {
             )}
           </div>
 
-          {/* Body */}
           <div style={{ padding: "32px" }}>
             {message && (
               <div style={{
@@ -596,7 +643,6 @@ const Register: React.FC = () => {
               </div>
             )}
 
-            {/* Step 0: Role Picker */}
             {currentStep === 0 && (
               <div className="step-animate">
                 <p style={{ color: colors.muted, fontSize: "0.9rem", marginBottom: 20, lineHeight: 1.6 }}>
@@ -637,8 +683,7 @@ const Register: React.FC = () => {
               </div>
             )}
 
-            {/* Steps 1–3: Form */}
-            {currentStep > 0 && (
+            {currentStep > 0 && currentStep !== 3 && (
               <form onSubmit={handleSubmit}>
                 {currentStep === 1 && (
                   <div className="step-animate" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -658,14 +703,13 @@ const Register: React.FC = () => {
                   </div>
                 )}
 
-                {currentStep === 3 && (
+                {currentStep === 4 && (
                   <div className="step-animate" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <PasswordField label="Password" name="password" value={formData.password} onChange={handleChange} error={errors.password?.[0]} required />
                     <PasswordField label="Confirm Password" name="confirm_password" value={formData.confirm_password} onChange={handleChange} error={errors.confirm_password?.[0]} required />
                   </div>
                 )}
 
-                {/* Role badge */}
                 <div style={{
                   marginTop: 20, padding: "10px 14px",
                   background: isEmployer ? "rgba(192,21,26,0.06)" : "rgba(26,29,94,0.06)",
@@ -687,7 +731,6 @@ const Register: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Nav buttons */}
                 <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "flex-end" }}>
                   <button type="button" className="reg-btn reg-btn-outline" onClick={prevStep}>
                     ← Back
@@ -706,6 +749,31 @@ const Register: React.FC = () => {
                   )}
                 </div>
               </form>
+            )}
+
+            {/* Step 3: Email OTP — separate from the <form>, since it has its
+                own async send/verify flow rather than a submit button */}
+            {currentStep === 3 && (
+              <div className="step-animate">
+                <EmailOtpStep
+                  email={formData.email}
+                  onVerified={(token) => setVerificationToken(token)}
+                />
+
+                <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "flex-end" }}>
+                  <button type="button" className="reg-btn reg-btn-outline" onClick={prevStep}>
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    className="reg-btn reg-btn-navy"
+                    onClick={nextStep}
+                    disabled={!verificationToken}
+                  >
+                    Continue →
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>

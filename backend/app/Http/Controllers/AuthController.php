@@ -201,6 +201,34 @@ class AuthController extends Controller
 
         return redirect(env('FRONTEND_URL') . '/verify-email/success');
     }
+    public function verifyEmailOtp(Request $request)
+    {
+        $request->validate([
+            'email'             => 'required|email',
+            'verificationToken' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email is already verified.'], 400);
+        }
+
+        if (!$this->verifyRegistrationOtp($request->email, $request->verificationToken)) {
+            throw ValidationException::withMessages([
+                'email' => ['Your verification code has expired or is invalid. Please try again.'],
+            ]);
+        }
+
+        $user->markEmailAsVerified();
+        event(new Verified($user));
+
+        return response()->json(['message' => 'Email verified. You can now log in.']);
+    }
 
     public function logout(Request $request)
     {

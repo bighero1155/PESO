@@ -20,6 +20,9 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
 Route::post('/email/resend', [AuthController::class, 'resendVerification'])
     ->middleware('throttle:6,1');
 
+Route::post('/email/verify-otp', [AuthController::class, 'verifyEmailOtp'])
+    ->middleware('throttle:6,1');
+
 // ── Public ────────────────────────────────────────────────────────────────────
 Route::get('/public/users/{user_id}', [UserController::class, 'publicProfile']);
 

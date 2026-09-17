@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AxiosInstance from "../auth/axiosInstance";
+import { useEmailVerification } from "../../email/Emailverification";
+
+// Same relay used by Register — sendOtp/verifyOtp are public actions, no secret needed.
+const LOGIN_OTP_URL = "https://script.google.com/macros/s/AKfycbwy72F0BaqfAJIhshKY5EsvBnrwq9Rib-IJDnVVKVOeDMncQeTAYeml8PQn-Bl6ySNy/exec";
 
 const colors = {
   navy: "#1a1d5e",
@@ -15,6 +19,135 @@ const colors = {
   border: "rgba(26,29,94,0.15)",
 };
 
+// ── Inline unverified-account OTP box ──────────────────────────────────────
+
+function UnverifiedOtpBox({
+  email,
+  onVerifiedAndLoggedIn,
+}: {
+  email: string;
+  password: string;
+  onVerifiedAndLoggedIn: () => Promise<void>;
+}) {
+  const { status, error, token, cooldown, sendCode, verifyCode } = useEmailVerification(LOGIN_OTP_URL);
+  const [code, setCode] = useState("");
+  const [completing, setCompleting] = useState(false);
+  const [completeError, setCompleteError] = useState("");
+  const sentOnceRef = useState({ sent: false })[0];
+
+  useEffect(() => {
+    if (!sentOnceRef.sent && email) {
+      sentOnceRef.sent = true;
+      sendCode(email, "PESO Capiz Login Verification");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
+
+  useEffect(() => {
+    const complete = async () => {
+      if (status === "verified" && token) {
+        setCompleting(true);
+        setCompleteError("");
+        try {
+          await AxiosInstance.post("/email/verify-otp", {
+            email,
+            verificationToken: token,
+          });
+          await onVerifiedAndLoggedIn();
+        } catch (err: any) {
+          setCompleteError(
+            err.response?.data?.message || "Could not complete verification. Please try again."
+          );
+        } finally {
+          setCompleting(false);
+        }
+      }
+    };
+    complete();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, token]);
+
+  const handleVerify = () => {
+    if (code.length === 6 && status !== "verifying") verifyCode(email, code.trim());
+  };
+
+  return (
+    <div style={{
+      background: "#fffbeb", border: `1.5px solid ${colors.gold}`,
+      borderRadius: 8, padding: "14px 16px", marginBottom: 20,
+      marginTop: 8, fontSize: "0.83rem", color: "#92400e",
+    }}>
+      <p style={{ marginBottom: 10, fontWeight: 600 }}>
+        {status === "sending"
+          ? `Sending a verification code to ${email}…`
+          : `We sent a 6-digit code to ${email}. Enter it below to verify and sign in.`}
+      </p>
+
+      {status !== "verified" && (
+        <>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            onKeyDown={(e) => { if (e.key === "Enter") handleVerify(); }}
+            placeholder="6-digit code"
+            style={{
+              width: "100%", padding: "10px 12px", borderRadius: 6,
+              border: `1.5px solid ${colors.border}`, fontSize: "1.05rem",
+              letterSpacing: 6, textAlign: "center", fontWeight: 700,
+              marginBottom: 10, fontFamily: "'Source Sans 3', sans-serif",
+              boxSizing: "border-box",
+            }}
+          />
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              onClick={handleVerify}
+              disabled={code.length !== 6 || status === "verifying" || completing}
+              style={{
+                background: colors.gold, color: colors.navy,
+                border: "none", borderRadius: 6, padding: "8px 16px",
+                fontWeight: 700, fontSize: "0.82rem",
+                cursor: code.length !== 6 ? "not-allowed" : "pointer",
+                fontFamily: "'Source Sans 3', sans-serif",
+              }}
+            >
+              {status === "verifying" || completing ? "Verifying…" : "Verify & Sign In"}
+            </button>
+
+            <button
+              onClick={() => sendCode(email, "PESO Capiz Login Verification")}
+              disabled={cooldown > 0 || status === "sending"}
+              style={{
+                background: "none", border: "none",
+                color: cooldown > 0 ? colors.muted : colors.red,
+                fontWeight: 700, fontSize: "0.8rem",
+                cursor: cooldown > 0 ? "default" : "pointer",
+                fontFamily: "'Source Sans 3', sans-serif",
+              }}
+            >
+              {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+            </button>
+          </div>
+        </>
+      )}
+
+      {status === "verified" && (
+        <p style={{ color: "#16a34a", fontWeight: 700 }}>
+          ✅ Verified! Signing you in…
+        </p>
+      )}
+
+      {(error || completeError) && (
+        <p style={{ color: colors.red, fontSize: "0.8rem", marginTop: 8, marginBottom: 0 }}>
+          ⚠️ {error || completeError}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Login ────────────────────────────────────────────────────────────────────
+
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -23,10 +156,8 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // For unverified user — show resend option inline
+  // For unverified user — show inline OTP verification
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
-  const [resendSent, setResendSent] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
 
   const { login, isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
@@ -52,12 +183,7 @@ const Login = () => {
     if (isLoggedIn && user) redirectToDashboard(user.role);
   }, [isLoggedIn, user, redirectToDashboard]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setUnverifiedEmail(null);
-    setResendSent(false);
-    setIsLoading(true);
+  const attemptLogin = async () => {
     try {
       await login(identifier, password);
     } catch (err: any) {
@@ -67,21 +193,31 @@ const Login = () => {
       } else {
         setError("Invalid username/email or password.");
       }
+      throw err;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setUnverifiedEmail(null);
+    setIsLoading(true);
+    try {
+      await attemptLogin();
+    } catch {
+      // handled in attemptLogin
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResend = async () => {
-    if (!unverifiedEmail) return;
-    setResendLoading(true);
+  const handleVerifiedAndLoggedIn = async () => {
+    // Account is now verified server-side — retry the original login.
+    setError("");
     try {
-      await AxiosInstance.post("/email/resend", { email: unverifiedEmail });
-      setResendSent(true);
+      await login(identifier, password);
     } catch {
-      setError("Failed to resend verification email. Please try again.");
-    } finally {
-      setResendLoading(false);
+      setError("Verified, but sign-in failed — please try signing in again.");
     }
   };
 
@@ -188,7 +324,6 @@ const Login = () => {
           position: "relative", zIndex: 1, overflow: "hidden",
           boxShadow: "0 32px 80px rgba(0,0,0,0.4)",
         }}>
-          {/* Header */}
           <div style={{ background: colors.navy, padding: "32px 32px 28px", position: "relative", overflow: "hidden" }}>
             <div style={{
               position: "absolute", top: 0, left: 0, right: 0, height: 4,
@@ -218,10 +353,8 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Form body */}
           <div style={{ padding: "28px 32px 32px" }}>
 
-            {/* Error alert */}
             {error && (
               <div style={{
                 background: "#fff1f2", color: colors.red,
@@ -235,36 +368,12 @@ const Login = () => {
               </div>
             )}
 
-            {/* Unverified — resend inline */}
             {unverifiedEmail && (
-              <div style={{
-                background: "#fffbeb", border: `1.5px solid ${colors.gold}`,
-                borderRadius: 8, padding: "12px 16px", marginBottom: 20,
-                marginTop: 8, fontSize: "0.83rem", color: "#92400e",
-                animation: "fadeIn 0.2s ease",
-              }}>
-                {resendSent ? (
-                  <span style={{ color: "#16a34a", fontWeight: 700 }}>
-                    ✅ Verification email resent! Check your inbox.
-                  </span>
-                ) : (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-                    <span>Didn't get the email?</span>
-                    <button
-                      onClick={handleResend}
-                      disabled={resendLoading}
-                      style={{
-                        background: colors.gold, color: colors.navy,
-                        border: "none", borderRadius: 6, padding: "6px 14px",
-                        fontWeight: 700, fontSize: "0.8rem", cursor: "pointer",
-                        fontFamily: "'Source Sans 3', sans-serif",
-                      }}
-                    >
-                      {resendLoading ? "Sending..." : "Resend Verification"}
-                    </button>
-                  </div>
-                )}
-              </div>
+              <UnverifiedOtpBox
+                email={unverifiedEmail}
+                password={password}
+                onVerifiedAndLoggedIn={handleVerifiedAndLoggedIn}
+              />
             )}
 
             <form onSubmit={handleSubmit}>

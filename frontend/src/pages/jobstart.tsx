@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import pesoLogo from "/assets/peso-logo.png";
-import jobstartLogo from "/assets/jobstart.png";
+import jobstartHeroBg from "/assets/JOBSTART/jobstart.png";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ function ImageLightbox({
         zIndex:         9999,
         padding:        "48px 24px",
         animation:      "lbFadeIn 0.18s ease both",
-        cursor:         "zoom-out",
+        cursor:       "zoom-out",
       }}
     >
       <button
@@ -506,103 +506,131 @@ export default function JobStartPage() {
         </header>
 
         {/* ── Hero ── */}
-        <section style={{
-          background: `linear-gradient(135deg, ${COLORS.navy} 0%, #23276e 55%, #1a1d5e 100%)`,
-          padding:    isMobile ? "52px 24px 56px" : "72px 24px 80px",
-          position:   "relative",
-          overflow:   "hidden",
-        }}>
-          <div style={{ position: "absolute", width: 480, height: 480, borderRadius: "50%", border: "1px solid rgba(245,200,66,0.08)", top: -160, right: -120, pointerEvents: "none" }} />
-          <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", border: "1px solid rgba(245,200,66,0.06)", bottom: -80, left: -60, pointerEvents: "none" }} />
+        <section
+          style={{
+            minHeight: isMobile ? "60vh" : "calc(100vh - 58px)",
+            position: "relative",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <img
+            src={jobstartHeroBg}
+            alt="JobStart Philippines"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+              zIndex: 0,
+            }}
+          />
+          <div style={{ position: "absolute", inset: 0, background: "rgba(10,12,50,0.62)", zIndex: 1 }} />
 
-          <div style={{
-            maxWidth:      1180,
-            margin:        "0 auto",
-            display:       "flex",
-            gap:           isMobile ? 32 : 64,
-            alignItems:    "center",
-            flexDirection: isMobile ? "column" : "row",
-            flexWrap:      "wrap",
-          }}>
-            <div style={{ flex: "1 1 400px", animation: "slideIn 0.4s ease both" }}>
-              <div style={{
-                display:      "inline-flex",
-                alignItems:   "center",
-                gap:          8,
-                background:   "rgba(245,200,66,0.12)",
-                border:       "1px solid rgba(245,200,66,0.25)",
-                borderRadius: 99,
-                padding:      "5px 14px",
-                marginBottom: 20,
-              }}>
-                <span style={{ fontSize: "0.68rem", fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: COLORS.gold }}>
-                  DOLE Program · RA 10869
-                </span>
-              </div>
-
-              <h1 style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize:   isMobile ? "2rem" : "clamp(2.2rem, 4vw, 3rem)",
-                color:      "white",
-                lineHeight: 1.15,
-                margin:     "0 0 10px",
-              }}>
-                JobStart<br />Philippines
-              </h1>
-
-              <p style={{ fontSize: "0.72rem", fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: COLORS.gold, margin: "0 0 20px" }}>
-                JobStart — P.E.S.O. Capiz
-              </p>
-
-              <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1rem", lineHeight: 1.75, maxWidth: 520, margin: "0 0 32px" }}>
-                A DOLE youth employment facilitation program that helps <strong style={{ color: "white" }}>Filipinos
-                aged 18–24</strong> bridge the gap between school and work through career coaching,
-                life skills and technical training, and paid internships with private-sector employers.
-              </p>
-
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a
-                  href="https://www.facebook.com/share/g/1Lf4NmuTd3/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: COLORS.red, color: "white", border: "none", padding: "13px 28px",
-                    borderRadius: 8, fontWeight: 700, fontSize: "0.92rem", cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(192,21,26,0.4)", textDecoration: "none",
-                    display: "inline-flex", alignItems: "center", gap: 8, letterSpacing: 0.3,
-                    transition: "background 0.18s", fontFamily: "'Source Sans 3', sans-serif",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
-                >
-                  Learn More at Jobstart Philippines Capiz →
-                </a>
-                <button
-                  onClick={() => navigate("/")}
-                  style={{
-                    background: "rgba(255,255,255,0.08)", color: "white",
-                    border: "1.5px solid rgba(255,255,255,0.2)", padding: "13px 24px",
-                    borderRadius: 8, fontWeight: 700, fontSize: "0.92rem", cursor: "pointer",
-                    letterSpacing: 0.3, transition: "background 0.18s", fontFamily: "'Source Sans 3', sans-serif",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
-                >
-                  🏠 Back to Home
-                </button>
-              </div>
+          <div
+            style={{
+              position: "relative",
+              zIndex: 2,
+              maxWidth: 1000,
+              margin: "0 auto",
+              padding: isMobile ? "72px 24px" : "90px 28px",
+              textAlign: "center",
+              animation: "fadeUp 0.9s ease both",
+            }}
+          >
+            <div style={{
+              display:      "inline-flex",
+              alignItems:   "center",
+              gap:          8,
+              background:   "rgba(245,200,66,0.12)",
+              border:       "1px solid rgba(245,200,66,0.25)",
+              borderRadius: 99,
+              padding:      "5px 14px",
+              marginBottom: 22,
+            }}>
+              <span style={{ fontSize: "0.68rem", fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", color: COLORS.gold }}>
+                DOLE Program · RA 10869
+              </span>
             </div>
 
-            <div style={{
-              flex: isMobile ? "none" : "0 0 260px", display: "flex", justifyContent: "center",
-              animation: "slideIn 0.5s ease 0.1s both", opacity: 0, animationFillMode: "forwards",
+            <h1
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "clamp(2.1rem, 5.5vw, 4rem)",
+                color: "white",
+                lineHeight: 1.15,
+                letterSpacing: 0.5,
+                textShadow: "0 2px 20px rgba(0,0,0,0.5)",
+                marginBottom: 14,
+              }}
+            >
+              JobStart<br />Philippines
+            </h1>
+
+            <p style={{
+              fontSize: "0.72rem",
+              fontWeight: 800,
+              letterSpacing: 3,
+              textTransform: "uppercase",
+              color: COLORS.gold,
+              margin: "0 0 26px",
+              textShadow: "0 1px 6px rgba(0,0,0,0.4)",
             }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-                <img src={jobstartLogo} alt="JobStart" style={{ width: isMobile ? 300 : 420, height: isMobile ? 300 : 420, objectFit: "contain" }} />
-                <span style={{ color: COLORS.gold, fontSize: "0.7rem", fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", textAlign: "center" }}>
-                  A DOLE Youth Employment Facilitation Program
-                </span>
-              </div>
+              JobStart — P.E.S.O. Capiz
+            </p>
+
+            <div style={{ width: 100, height: 4, background: COLORS.red, borderRadius: 2, margin: "0 auto 28px" }} />
+
+            <p
+              style={{
+                color: "rgba(255,255,255,0.88)",
+                fontSize: "clamp(0.95rem, 1.6vw, 1.15rem)",
+                lineHeight: 1.85,
+                fontWeight: 300,
+                maxWidth: 700,
+                margin: "0 auto 34px",
+                textShadow: "0 1px 6px rgba(0,0,0,0.4)",
+              }}
+            >
+              A DOLE youth employment facilitation program that helps Filipinos aged 18–24 bridge
+              the gap between school and work through career coaching, life skills and technical
+              training, and paid internships with private-sector employers.
+            </p>
+
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+              <a
+                href="https://www.facebook.com/share/g/1Lf4NmuTd3/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: COLORS.red, color: "white", border: "none", padding: "13px 28px",
+                  borderRadius: 8, fontWeight: 700, fontSize: "0.92rem", cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(192,21,26,0.4)", textDecoration: "none",
+                  display: "inline-flex", alignItems: "center", gap: 8, letterSpacing: 0.3,
+                  transition: "background 0.18s", fontFamily: "'Source Sans 3', sans-serif",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = COLORS.redHover; }}
+                onMouseLeave={e => { e.currentTarget.style.background = COLORS.red; }}
+              >
+                Learn More at Jobstart Philippines Capiz →
+              </a>
+              <button
+                onClick={() => navigate("/")}
+                style={{
+                  background: "rgba(255,255,255,0.08)", color: "white",
+                  border: "1.5px solid rgba(255,255,255,0.2)", padding: "13px 24px",
+                  borderRadius: 8, fontWeight: 700, fontSize: "0.92rem", cursor: "pointer",
+                  letterSpacing: 0.3, transition: "background 0.18s", fontFamily: "'Source Sans 3', sans-serif",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+              >
+                🏠 Back to Home
+              </button>
             </div>
           </div>
         </section>

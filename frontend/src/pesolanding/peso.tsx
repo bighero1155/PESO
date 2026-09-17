@@ -4,6 +4,7 @@ import heroBg from "/assets/bg.jpg";
 import capizSeal from "/assets/sealofcapiz.png";
 import dpoDpsLogo from "/assets/dpodps1.jpg";
 import PesoNavbar from "../pesolanding/PesoNavbar";
+import { useNavigate } from "react-router-dom";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -564,15 +565,13 @@ const sectionSub: React.CSSProperties = { color: "#5a5a7a", fontSize: "1.05rem",
 // ── Root ──────────────────────────────────────────────────────────────────────
 
 export default function PesoLanding() {
+  const navigate = useNavigate();
 
-  // Login and Register are not wired up yet — routes/pages aren't ready.
-  // Commented out the navigation so the buttons render but do nothing for now.
-  // When ready, uncomment the navigate() calls below to re-enable.
   const handleLoginClick = () => {
-    // navigate("/login");
+    navigate("/login");
   };
   const handleRegisterClick = () => {
-    // navigate("/register");
+    navigate("/register");
   };
 
   return (

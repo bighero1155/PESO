@@ -7,10 +7,47 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * Sends the "verify your email" link via the Apps Script relay instead
+     * of Laravel's SMTP mailer — Render blocks outbound SMTP ports, but a
+     * plain HTTPS POST (port 443) to Apps Script is unaffected, and the
+     * script sends the actual email through GmailApp.
+     *
+     * Used by both register() and resendVerification() so the link-building
+     * and relay-call logic isn't duplicated.
+     *
+     * Failures here are logged but never thrown — a relay outage should
+     * never break registration itself. The user's "Resend" button in the
+     * frontend covers the case where the email never arrived.
+     */
+    private function sendVerificationEmailViaRelay(User $user): void
+    {
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $user->user_id, 'hash' => sha1($user->email)]
+        );
+
+        try {
+            Http::timeout(10)->post(env('RELAY_URL'), [
+                'secret' => env('RELAY_SECRET'),
+                'action' => 'sendVerification',
+                'email'  => $user->email,
+                'name'   => $user->first_name,
+                'link'   => $verificationUrl,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Verification email relay failed: ' . $e->getMessage());
+        }
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -85,8 +122,9 @@ class AuthController extends Controller
             'role'           => $request->role ?? 'applicant',
         ]);
 
-        // Send verification email
-        $user->sendEmailVerificationNotification();
+        // Send verification email via the Apps Script relay (not SMTP —
+        // see sendVerificationEmailViaRelay() docblock for why).
+        $this->sendVerificationEmailViaRelay($user);
 
         return response()->json([
             'message' => 'Registration successful. Please check your email to verify your account.',
@@ -109,7 +147,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email is already verified.'], 400);
         }
 
-        $user->sendEmailVerificationNotification();
+        $this->sendVerificationEmailViaRelay($user);
 
         return response()->json(['message' => 'Verification email resent successfully.']);
     }

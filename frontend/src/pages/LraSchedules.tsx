@@ -179,8 +179,8 @@ export const LRA_FOURPS_OPTIONS     = ["Yes", "No"];
 export const LRA_LANGUAGE_OPTIONS   = ["Filipino", "English", "Hiligaynon/Ilonggo", "Cebuano", "Others"];
 
 // ── Registration Deadline ─────────────────────────────────────────────────────
-// Same pattern as the Attendance / Jobs pre-registration forms: a live
-// countdown badge in the header, and a "closed" screen once the deadline
+// Same pattern as the Attendance / Jobs / JobFair pre-registration forms: a
+// live countdown badge in the header, and a "closed" screen once the deadline
 // passes. Ported from Attendance.tsx.
 
 export const APPLICATION_DEADLINE = "2026-10-10";
@@ -228,9 +228,9 @@ export function getTimeRemaining(): TimeRemaining {
 
 // ── Apps Script endpoint ──────────────────────────────────────────────────────
 // This one URL now handles BOTH the OTP send/verify actions AND the final
-// registration submission — see LraSchedules.gs. It's also passed to
-// EmailVerificationGate as `otpUrl` so the gate hits the same self-contained
-// backend, rather than a separate shared OTP-Service.gs.
+// registration submission — see LraSchedules.gs. It's also passed to the
+// inline email verification widget as `otpUrl` so it hits the same
+// self-contained backend, rather than a separate shared OTP-Service.gs.
 
 export const LRA_SUBMIT_URL =
   "https://script.google.com/macros/s/AKfycbzs-mNuyC5E5R1DGVfNgAnfs9jVFvjmZnBFrt_3-IxbWW3fjoqVTjdX1QBitbYIIxpFrQ/exec";
@@ -367,8 +367,18 @@ function findLikelyDomainTypo(email: string): string | null {
   return null;
 }
 
-export function getLraIssues(form: LraFormState): string[] {
+/**
+ * `emailVerified` is required (not optional) so every call site is forced to
+ * think about whether verification has happened yet — see
+ * LraSchedulesDesign.tsx's inline widget, which is the thing that actually
+ * sets it to true. Mirrors the same change made in JobFairSchedules.tsx.
+ */
+export function getLraIssues(form: LraFormState, emailVerified: boolean): string[] {
   const issues: string[] = [];
+
+  if (!emailVerified) {
+    issues.push("Please verify your email before continuing.");
+  }
 
   if (!form.firstName.trim())  issues.push("First name is required.");
   if (!form.middleName.trim()) issues.push("Middle name is required.");
@@ -454,8 +464,8 @@ const EMPTY_FORM: LraFormState = {
 };
 
 // PII fields stripped before writing the draft to localStorage — same
-// pattern as Jobs.tsx / Attendance.tsx. They reset on refresh; everything
-// else autosaves.
+// pattern as Jobs.tsx / Attendance.tsx / JobFairSchedules.tsx. They reset on
+// refresh; everything else autosaves.
 const SENSITIVE_FIELDS: (keyof LraFormState)[] = ["email", "contact", "address"];
 
 function loadForm(): LraFormState {
@@ -528,7 +538,7 @@ export default function LraSchedules() {
     }
   }, [submitSuccess]);
 
-  const issues = attempted ? getLraIssues(form) : [];
+  const issues = attempted ? getLraIssues(form, emailVerified) : [];
 
   const updateForm = (patch: Partial<LraFormState>) => {
     setForm(prev => ({ ...prev, ...patch }));
@@ -574,8 +584,10 @@ export default function LraSchedules() {
     setSubmitError(null);
   };
 
-  // Called by EmailVerificationGate once the OTP is confirmed. Fills the
-  // form's email field and unlocks the rest of the form.
+  // Called by the inline email-verification widget once the OTP is
+  // confirmed. Fills the form's email field and flips emailVerified — it no
+  // longer unmounts/replaces anything, since the widget stays mounted inside
+  // the always-visible form now.
   const handleEmailVerified = (email: string, token: string) => {
     setForm(prev => ({ ...prev, email }));
     setVerificationToken(token);
@@ -596,14 +608,14 @@ export default function LraSchedules() {
     setAttempted(true);
     setSubmitError(null);
 
-    // Second guard on top of the UI hiding the form until verified — submit
+    // Second guard on top of the UI blocking submit until verified — submit
     // can't proceed without a verified token no matter how it's triggered.
     if (!emailVerified || !verificationToken) {
       setSubmitError("Please verify your email before submitting.");
       return;
     }
 
-    const validationIssues = getLraIssues(form);
+    const validationIssues = getLraIssues(form, emailVerified);
     if (validationIssues.length > 0) return;
 
     setSubmitting(true);

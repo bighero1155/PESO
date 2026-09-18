@@ -1097,25 +1097,16 @@ function StepPill({ number, label, active, done }: { number: number; label: stri
 
 function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
   const [search, setSearch] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("All");
-
-  const companies = useMemo(
-    () => ["All", ...Array.from(new Set(JOB_LISTINGS.map(j => j.company)))],
-    []
-  );
 
   const filteredJobs = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return JOB_LISTINGS.filter(j => {
-      const matchesCompany = companyFilter === "All" || j.company === companyFilter;
-      const matchesSearch =
-        !q ||
-        j.position.toLowerCase().includes(q) ||
-        j.company.toLowerCase().includes(q) ||
-        j.requiredSkills.some(s => s.toLowerCase().includes(q));
-      return matchesCompany && matchesSearch;
-    });
-  }, [search, companyFilter]);
+    if (!q) return JOB_LISTINGS;
+    return JOB_LISTINGS.filter(j =>
+      j.position.toLowerCase().includes(q) ||
+      j.company.toLowerCase().includes(q) ||
+      j.requiredSkills.some(s => s.toLowerCase().includes(q))
+    );
+  }, [search]);
 
   // Wraps the matched substring of the company name in a highlighted <mark>.
   const highlightCompany = (company: string) => {
@@ -1164,21 +1155,8 @@ function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search position, company, skill…"
-              style={{ ...filterInputStyle, marginBottom: 10 }}
-            />
-
-            {/* Company filter dropdown */}
-            <select
-              value={companyFilter}
-              onChange={e => setCompanyFilter(e.target.value)}
               style={filterInputStyle}
-            >
-              {companies.map(c => (
-                <option key={c} value={c} style={{ color: COLORS.navy }}>
-                  {c === "All" ? "All Companies" : c}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -1188,22 +1166,82 @@ function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
               </p>
             ) : (
               filteredJobs.map((j, i) => (
-                <div key={j.id} style={{ padding: "16px 24px", borderTop: i === 0 ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
-                  <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2 }}>{j.position}</span>
-                  <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block", marginBottom: 12 }}>
-                    {highlightCompany(j.company)}&nbsp;•&nbsp;{j.location}
-                  </span>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <RefRequirementRow label="Education" value={EDUCATION_LEVELS.find(e => e.rank === j.minEducationRank)?.label || "—"} />
-                    <RefRequirementRow label="Education Background" value="School & Degree/Course required" />
-                    <RefRequirementRow label="Skills" value={j.requiredSkills.join(", ")} />
-                  </div>
-                </div>
+                <ReferenceJobRow
+                  key={j.id}
+                  job={j}
+                  isFirst={i === 0}
+                  highlightCompany={highlightCompany}
+                />
               ))
             )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Collapsed by default: just position + company, click to expand the
+// requirement details. Keeps the reference panel short when there are more
+// than a couple of listings, instead of always showing every job's full
+// requirement breakdown at once.
+function ReferenceJobRow({
+  job,
+  isFirst,
+  highlightCompany,
+}: {
+  job: JobListing;
+  isFirst: boolean;
+  highlightCompany: (company: string) => React.ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div style={{ borderTop: isFirst ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          padding: "14px 24px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+          fontFamily: "'Source Sans 3', sans-serif",
+        }}
+      >
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2 }}>{job.position}</span>
+          <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block" }}>
+            {highlightCompany(job.company)}&nbsp;•&nbsp;{job.location}
+          </span>
+        </span>
+        <span style={{
+          color: "rgba(255,255,255,0.5)",
+          fontSize: "0.7rem",
+          flexShrink: 0,
+          transition: "transform 0.15s",
+          transform: expanded ? "rotate(180deg)" : "none",
+          display: "inline-block",
+        }}>
+          ▼
+        </span>
+      </button>
+
+      {expanded && (
+        <div style={{ padding: "0 24px 16px", animation: "expandDown 0.18s ease both" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <RefRequirementRow label="Education" value={EDUCATION_LEVELS.find(e => e.rank === job.minEducationRank)?.label || "—"} />
+            <RefRequirementRow label="Education Background" value="School & Degree/Course required" />
+            <RefRequirementRow label="Skills" value={job.requiredSkills.join(", ")} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

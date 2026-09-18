@@ -170,7 +170,7 @@ export const LRA_DEGREE_OPTIONS = [
   "Bachelor of Secondary Education",
 ];
 
-export const LRA_GENDER_OPTIONS     = ["Male", "Female", "Prefer not to say"];
+export const LRA_GENDER_OPTIONS     = ["Male", "Female"];
 export const LRA_CIVIL_OPTIONS      = ["Single", "Married", "Widowed", "Separated", "Divorced"];
 export const LRA_DISABILITY_OPTIONS = ["None", "Yes"];
 export const LRA_EMPLOYMENT_OPTIONS = ["Employed", "Unemployed"];

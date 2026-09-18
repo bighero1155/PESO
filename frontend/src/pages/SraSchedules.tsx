@@ -170,7 +170,7 @@ export const SRA_DEGREE_OPTIONS = [
   "Bachelor of Secondary Education",
 ];
 
-export const SRA_GENDER_OPTIONS     = ["Male", "Female", "Prefer not to say"];
+export const SRA_GENDER_OPTIONS     = ["Male", "Female"];
 export const SRA_CIVIL_OPTIONS      = ["Single", "Married", "Widowed", "Separated", "Divorced"];
 export const SRA_DISABILITY_OPTIONS = ["None", "Yes"];
 export const SRA_EMPLOYMENT_OPTIONS = ["Employed", "Unemployed"];

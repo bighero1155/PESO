@@ -170,7 +170,7 @@ export const JOBFAIR_SCHEDULES_DEGREE_OPTIONS = [
   "Bachelor of Secondary Education",
 ];
 
-export const JOBFAIR_SCHEDULES_GENDER_OPTIONS     = ["Male", "Female", "Prefer not to say"];
+export const JOBFAIR_SCHEDULES_GENDER_OPTIONS     = ["Male", "Female"];
 export const JOBFAIR_SCHEDULES_CIVIL_OPTIONS      = ["Single", "Married", "Widowed", "Separated", "Divorced"];
 export const JOBFAIR_SCHEDULES_DISABILITY_OPTIONS = ["None", "Yes"];
 export const JOBFAIR_SCHEDULES_EMPLOYMENT_OPTIONS = ["Employed", "Unemployed"];

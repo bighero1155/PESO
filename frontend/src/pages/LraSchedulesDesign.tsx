@@ -1386,9 +1386,13 @@ export default function LraSchedulesDesign({
                       </Field>
                     </div>
 
-                    {/* Address */}
-                    <Field label="Address" required error={hasIssue("Address is required.") ? "Address is required." : undefined}>
-                      <input style={fieldInputStyle(hasIssue("Address is required."))} value={form.address} onChange={e => onUpdateForm({ address: e.target.value.toUpperCase() })} placeholder="BRGY., CITY/MUNICIPALITY, PROVINCE" />
+                    <Field label="Address ( House No./street, District/Brgy, Municipality/City, Province )" required error={hasIssue("Address is required.") ? "Address is required." : undefined}>
+                      <input
+                      style={fieldInputStyle(hasIssue("Address is required."))}
+                      value={form.address}
+                      onChange={e => onUpdateForm({ address: e.target.value.toUpperCase() })}
+                      placeholder="HOUSE NO./STREET, DISTRICT/BRGY, MUNICIPALITY/CITY, PROVINCE"
+                    />
                     </Field>
 
                     <SectionDivider title="Personal Profile" />

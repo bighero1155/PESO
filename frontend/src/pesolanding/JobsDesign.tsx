@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import isEmail from "validator/lib/isEmail";
 import {
@@ -1089,8 +1089,63 @@ function StepPill({ number, label, active, done }: { number: number; label: stri
 }
 
 // ── Step 1 right panel ────────────────────────────────────────────────────────
+//
+// Search + company filter + highlighted matches over JOB_LISTINGS. State is
+// local to this component (search text, selected company) — nothing needs to
+// be lifted to Jobs.tsx since it only ever reads the static JOB_LISTINGS array
+// and doesn't affect form state or submission.
 
 function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
+  const [search, setSearch] = useState("");
+  const [companyFilter, setCompanyFilter] = useState("All");
+
+  const companies = useMemo(
+    () => ["All", ...Array.from(new Set(JOB_LISTINGS.map(j => j.company)))],
+    []
+  );
+
+  const filteredJobs = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return JOB_LISTINGS.filter(j => {
+      const matchesCompany = companyFilter === "All" || j.company === companyFilter;
+      const matchesSearch =
+        !q ||
+        j.position.toLowerCase().includes(q) ||
+        j.company.toLowerCase().includes(q) ||
+        j.requiredSkills.some(s => s.toLowerCase().includes(q));
+      return matchesCompany && matchesSearch;
+    });
+  }, [search, companyFilter]);
+
+  // Wraps the matched substring of the company name in a highlighted <mark>.
+  const highlightCompany = (company: string) => {
+    const q = search.trim().toLowerCase();
+    if (!q || !company.toLowerCase().includes(q)) return company;
+    const idx = company.toLowerCase().indexOf(q);
+    return (
+      <>
+        {company.slice(0, idx)}
+        <mark style={{ background: COLORS.gold, color: COLORS.navy, padding: "0 2px", borderRadius: 3 }}>
+          {company.slice(idx, idx + q.length)}
+        </mark>
+        {company.slice(idx + q.length)}
+      </>
+    );
+  };
+
+  const filterInputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "9px 12px",
+    borderRadius: 8,
+    border: "1.5px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.08)",
+    color: "white",
+    fontSize: "0.85rem",
+    fontFamily: "'Source Sans 3', sans-serif",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
   return (
     <div style={{ flex: isMobile ? "none" : "0 0 38%", order: isMobile ? 1 : 2 }}>
       <div style={{ position: "sticky", top: 24 }}>
@@ -1099,23 +1154,53 @@ function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
             <span style={{ display: "inline-block", fontSize: "0.7rem", fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: COLORS.gold, marginBottom: 6 }}>
               For Reference
             </span>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", color: "white", lineHeight: 1.2, margin: 0 }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", color: "white", lineHeight: 1.2, margin: "0 0 16px" }}>
               Available Positions
             </h2>
+
+            {/* Search bar */}
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search position, company, skill…"
+              style={{ ...filterInputStyle, marginBottom: 10 }}
+            />
+
+            {/* Company filter dropdown */}
+            <select
+              value={companyFilter}
+              onChange={e => setCompanyFilter(e.target.value)}
+              style={filterInputStyle}
+            >
+              {companies.map(c => (
+                <option key={c} value={c} style={{ color: COLORS.navy }}>
+                  {c === "All" ? "All Companies" : c}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {JOB_LISTINGS.map((j, i) => (
-              <div key={j.id} style={{ padding: "16px 24px", borderTop: i === 0 ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
-                <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2 }}>{j.position}</span>
-                <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block", marginBottom: 12 }}>{j.company}&nbsp;•&nbsp;{j.location}</span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  <RefRequirementRow label="Education" value={EDUCATION_LEVELS.find(e => e.rank === j.minEducationRank)?.label || "—"} />
-                  <RefRequirementRow label="Education Background" value="School & Degree/Course required" />
-                  <RefRequirementRow label="Skills" value={j.requiredSkills.join(", ")} />
+            {filteredJobs.length === 0 ? (
+              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", padding: "16px 24px", margin: 0 }}>
+                No positions match your search.
+              </p>
+            ) : (
+              filteredJobs.map((j, i) => (
+                <div key={j.id} style={{ padding: "16px 24px", borderTop: i === 0 ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
+                  <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2 }}>{j.position}</span>
+                  <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block", marginBottom: 12 }}>
+                    {highlightCompany(j.company)}&nbsp;•&nbsp;{j.location}
+                  </span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <RefRequirementRow label="Education" value={EDUCATION_LEVELS.find(e => e.rank === j.minEducationRank)?.label || "—"} />
+                    <RefRequirementRow label="Education Background" value="School & Degree/Course required" />
+                    <RefRequirementRow label="Skills" value={j.requiredSkills.join(", ")} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import isEmail from "validator/lib/isEmail";
 import { useEmailVerification } from "../../email/Emailverification";
@@ -523,17 +523,6 @@ function HoverOption({ label, isSelected, style, onClick }: {
   );
 }
 
-// ── Inline email verification widget ──────────────────────────────────────────
-// Lives directly inside the Email Address field, using the same
-// useEmailVerification hook that Emailverificationgate.tsx uses — so LRA, SRA,
-// and any other consumer of the full-page gate are completely unaffected.
-//
-// Unlike the old gate, this widget is ALWAYS mounted once the form renders (no
-// unmount/remount cycle tied to emailVerified). The one exception is
-// "Change email": since the hook has no reset function, the parent forces a
-// fresh instance by bumping a `key` prop, which remounts this component back
-// to a clean idle state. Ported directly from JobsDesign.tsx.
-
 interface InlineEmailVerificationProps {
   formLabel: string;
   otpUrl: string;
@@ -770,10 +759,6 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
     </div>
   );
 }
-
-// ── Deadline badge (shown in header) ──────────────────────────────────────────
-// Live countdown, ticking every second, down to the registration deadline.
-// Ported from JobsDesign.tsx.
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -1110,9 +1095,48 @@ function JobFairCard({ fair, index, isMobile, onSelect, onViewImage }: {
   );
 }
 
-// ── Reference panel (right side) ──────────────────────────────────────────────
-
 function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
+  const [search, setSearch] = useState("");
+
+  const filteredJobs = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return JOBFAIR_SCHEDULES_JOB_LISTINGS;
+    return JOBFAIR_SCHEDULES_JOB_LISTINGS.filter(j =>
+      j.position.toLowerCase().includes(q) ||
+      j.company.toLowerCase().includes(q) ||
+      j.requiredSkills.some(s => s.toLowerCase().includes(q))
+    );
+  }, [search]);
+
+  // Wraps the matched substring of the company name in a highlighted <mark>.
+  const highlightCompany = (company: string) => {
+    const q = search.trim().toLowerCase();
+    if (!q || !company.toLowerCase().includes(q)) return company;
+    const idx = company.toLowerCase().indexOf(q);
+    return (
+      <>
+        {company.slice(0, idx)}
+        <mark style={{ background: COLORS.gold, color: COLORS.navy, padding: "0 2px", borderRadius: 3 }}>
+          {company.slice(idx, idx + q.length)}
+        </mark>
+        {company.slice(idx + q.length)}
+      </>
+    );
+  };
+
+  const filterInputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "9px 12px",
+    borderRadius: 8,
+    border: "1.5px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.08)",
+    color: "white",
+    fontSize: "0.85rem",
+    fontFamily: "'Source Sans 3', sans-serif",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
   return (
     <div style={{ flex: isMobile ? "none" : "0 0 38%", order: isMobile ? 1 : 2 }}>
       <div style={{ position: isMobile ? "static" : "sticky", top: 24 }}>
@@ -1121,30 +1145,106 @@ function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
             <span style={{ display: "inline-block", fontSize: "0.7rem", fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: COLORS.gold, marginBottom: 6 }}>
               For Reference
             </span>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.2rem" : "1.4rem", color: "white", lineHeight: 1.2, margin: 0 }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.2rem" : "1.4rem", color: "white", lineHeight: 1.2, margin: "0 0 14px" }}>
               Available Positions
             </h2>
+
+            {/* Search bar */}
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search position, company, skill…"
+              style={filterInputStyle}
+            />
           </div>
+
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {JOBFAIR_SCHEDULES_JOB_LISTINGS.map((j, i) => (
-              <div key={j.id} style={{ padding: isMobile ? "14px 20px 16px" : "18px 24px 20px", borderTop: i === 0 ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
-                <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2 }}>{j.position}</span>
-                <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block", marginBottom: 12 }}>{j.company}&nbsp;•&nbsp;{j.location}</span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
-                    <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Education</span>
-                    <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{j.educationLabel}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
-                    <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Skills</span>
-                    <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{j.requiredSkills.join(", ")}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {filteredJobs.length === 0 ? (
+              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", padding: "16px 24px", margin: 0 }}>
+                No positions match your search.
+              </p>
+            ) : (
+              filteredJobs.map((j, i) => (
+                <FairReferenceJobRow
+                  key={j.id}
+                  job={j}
+                  isFirst={i === 0}
+                  isMobile={isMobile}
+                  highlightCompany={highlightCompany}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+function FairReferenceJobRow({
+  job,
+  isFirst,
+  isMobile,
+  highlightCompany,
+}: {
+  job: (typeof JOBFAIR_SCHEDULES_JOB_LISTINGS)[number];
+  isFirst: boolean;
+  isMobile: boolean;
+  highlightCompany: (company: string) => React.ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div style={{ borderTop: isFirst ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          padding: isMobile ? "12px 20px" : "14px 24px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+          fontFamily: "'Source Sans 3', sans-serif",
+        }}
+      >
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2 }}>{job.position}</span>
+          <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block" }}>
+            {highlightCompany(job.company)}&nbsp;•&nbsp;{job.location}
+          </span>
+        </span>
+        <span style={{
+          color: "rgba(255,255,255,0.5)",
+          fontSize: "0.7rem",
+          flexShrink: 0,
+          transition: "transform 0.15s",
+          transform: expanded ? "rotate(180deg)" : "none",
+          display: "inline-block",
+        }}>
+          ▼
+        </span>
+      </button>
+
+      {expanded && (
+        <div style={{ padding: isMobile ? "0 20px 14px" : "0 24px 16px", animation: "expandDown 0.18s ease both" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
+              <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Education</span>
+              <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{job.educationLabel}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
+              <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Skills</span>
+              <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{job.requiredSkills.join(", ")}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1237,19 +1337,9 @@ export default function JobFairSchedulesDesign({
     onChangeEmail();
     setEmailWidgetKey(k => k + 1);
   };
-
-  // If registration has closed, block new sign-ups — but still let someone who
-  // already registered (submitSuccess) see their confirmation screen.
   if (isApplicationClosed() && !submitSuccess) {
     return <RegistrationClosed isMobile={isMobile} onNavigateHome={onNavigateHome} />;
   }
-
-  // Checks for EXACT issue messages returned by getJobFairSchedulesIssues,
-  // rather than loose substring keywords. Substring matching previously caused
-  // false positives — e.g. hasIssue("address") also matched the word
-  // "addresses" inside the disposable-email message, which incorrectly put
-  // the Address field into an error state whenever the Email field had an
-  // unrelated error.
   const hasIssue = (...exactMessages: string[]) =>
     exactMessages.some(msg => issues.includes(msg));
 

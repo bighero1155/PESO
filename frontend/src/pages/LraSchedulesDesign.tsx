@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import pesoLogo from "/assets/peso-logo.png";
 import isEmail from "validator/lib/isEmail";
 import { useEmailVerification } from "../../email/Emailverification";
@@ -1110,8 +1110,102 @@ function LraEventCard({ event, index, isMobile, onSelect, onViewImage }: {
 }
 
 // ── Reference panel (right side) ──────────────────────────────────────────────
+// Now with a search bar and collapsible rows: each job row starts collapsed
+// (title, company, location only) and expands on click to reveal Education
+// and Skills. Typing in the search box filters by position, company, or
+// location, and highlights the matched company name — same pattern used in
+// AvailableJobsReference (Jobs) and JobFairSchedulesDesign's reference panel.
+
+function highlightMatch(text: string, query: string) {
+  if (!query.trim()) return text;
+  const idx = text.toLowerCase().indexOf(query.trim().toLowerCase());
+  if (idx === -1) return text;
+  const before = text.slice(0, idx);
+  const match  = text.slice(idx, idx + query.trim().length);
+  const after  = text.slice(idx + query.trim().length);
+  return (
+    <>
+      {before}
+      <span style={{ background: COLORS.gold, color: COLORS.navy, borderRadius: 3, padding: "0 2px" }}>{match}</span>
+      {after}
+    </>
+  );
+}
+
+function ReferenceJobRow({ job, search, isMobile, isFirst }: {
+  job: typeof LRA_JOB_LISTINGS[number];
+  search: string;
+  isMobile: boolean;
+  isFirst: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const companyMatches = search.trim() && job.company.toLowerCase().includes(search.trim().toLowerCase());
+
+  return (
+    <div style={{ borderTop: isFirst ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width: "100%",
+          textAlign: "left",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          padding: isMobile ? "14px 20px" : "16px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          fontFamily: "'Source Sans 3', sans-serif",
+        }}
+      >
+        <span style={{ minWidth: 0 }}>
+          <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {job.position}
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{ color: companyMatches ? COLORS.gold : "rgba(255,255,255,0.55)", fontWeight: companyMatches ? 700 : 400 }}>
+              {companyMatches ? highlightMatch(job.company, search) : job.company}
+            </span>
+            &nbsp;•&nbsp;{job.location}
+          </span>
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", flexShrink: 0, transition: "transform 0.15s", transform: open ? "rotate(180deg)" : "none", display: "inline-block" }}>
+          ▼
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: isMobile ? "0 20px 16px" : "0 24px 20px", animation: "expandDown 0.15s ease both" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
+              <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Education</span>
+              <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{job.educationLabel}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
+              <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Skills</span>
+              <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{job.requiredSkills.join(", ")}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return LRA_JOB_LISTINGS;
+    return LRA_JOB_LISTINGS.filter(j =>
+      j.position.toLowerCase().includes(q) ||
+      j.company.toLowerCase().includes(q) ||
+      j.location.toLowerCase().includes(q)
+    );
+  }, [search]);
+
   return (
     <div style={{ flex: isMobile ? "none" : "0 0 38%", order: isMobile ? 1 : 2 }}>
       <div style={{ position: isMobile ? "static" : "sticky", top: 24 }}>
@@ -1120,27 +1214,37 @@ function AvailableJobsReference({ isMobile }: { isMobile: boolean }) {
             <span style={{ display: "inline-block", fontSize: "0.7rem", fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: COLORS.gold, marginBottom: 6 }}>
               For Reference
             </span>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.2rem" : "1.4rem", color: "white", lineHeight: 1.2, margin: 0 }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: isMobile ? "1.2rem" : "1.4rem", color: "white", lineHeight: 1.2, margin: "0 0 14px" }}>
               Available Positions
             </h2>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by job title, company, or location…"
+              style={{
+                width: "100%",
+                padding: "9px 14px",
+                borderRadius: 8,
+                border: "1.5px solid rgba(255,255,255,0.18)",
+                background: "rgba(255,255,255,0.08)",
+                color: "white",
+                fontSize: "0.85rem",
+                fontFamily: "'Source Sans 3', sans-serif",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {LRA_JOB_LISTINGS.map((j, i) => (
-              <div key={j.id} style={{ padding: isMobile ? "14px 20px 16px" : "18px 24px 20px", borderTop: i === 0 ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.07)" }}>
-                <span style={{ color: "white", fontWeight: 700, fontSize: "0.95rem", display: "block", marginBottom: 2 }}>{j.position}</span>
-                <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.8rem", display: "block", marginBottom: 12 }}>{j.company}&nbsp;•&nbsp;{j.location}</span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
-                    <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Education</span>
-                    <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{j.educationLabel}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem" }}>
-                    <span style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>Skills</span>
-                    <span style={{ color: "white", fontWeight: 700, textAlign: "right" }}>{j.requiredSkills.join(", ")}</span>
-                  </div>
-                </div>
+            {filtered.length > 0 ? (
+              filtered.map((j, i) => (
+                <ReferenceJobRow key={j.id} job={j} search={search} isMobile={isMobile} isFirst={i === 0} />
+              ))
+            ) : (
+              <div style={{ padding: isMobile ? "16px 20px 20px" : "18px 24px 24px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                <span style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem" }}>No matching positions found.</span>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

@@ -167,28 +167,21 @@ function Hero() {
           width: "100%",
         }}
       >
-        {/* PESO logo + Capiz Seal.
-            The PESO artwork has noticeably more built-in transparent padding
-            than the Capiz seal file, so at identical box sizes its visible
-            circle renders smaller. The two clamp() sizes below keep the same
-            393:310 ratio at every viewport width so that relationship holds
-            from desktop all the way down to mobile, where they stack in a
-            column instead of squeezing into a row. */}
         <div
           style={{
             flexShrink: 0,
-            width: "clamp(180px, 34vw, 393px)",
-            height: "clamp(180px, 34vw, 393px)",
+            width: "clamp(142px, 26.8vw, 310px)",
+            height: "clamp(142px, 26.8vw, 310px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             overflow: "visible",
             animation: "fadeIn 0.8s ease both",
-            transform: `translateY(${PESO_LOGO_OFFSET_Y}px)`,
+            transform: `translateY(${CAPIZ_SEAL_OFFSET_Y}px)`,
           }}
         >
           <img
-            src={pesoLogo}
+            src={capizSeal}
             alt="PESO Official Seal"
             style={{
               maxWidth: "100%",
@@ -205,18 +198,18 @@ function Hero() {
         <div
           style={{
             flexShrink: 0,
-            width: "clamp(142px, 26.8vw, 310px)",
-            height: "clamp(142px, 26.8vw, 310px)",
+            width: "clamp(180px, 34vw, 393px)",
+            height: "clamp(180px, 34vw, 393px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             overflow: "visible",
             animation: "fadeIn 0.8s ease both",
-            transform: `translateY(${CAPIZ_SEAL_OFFSET_Y}px)`,
+            transform: `translateY(${PESO_LOGO_OFFSET_Y}px)`,
           }}
         >
           <img
-            src={capizSeal}
+            src={pesoLogo}
             alt="PESO Official Seal"
             style={{
               maxWidth: "100%",

@@ -179,8 +179,8 @@ export const SRA_FOURPS_OPTIONS     = ["Yes", "No"];
 export const SRA_LANGUAGE_OPTIONS   = ["Filipino", "English", "Hiligaynon/Ilonggo", "Cebuano", "Others"];
 
 // ── Registration Deadline ─────────────────────────────────────────────────────
-// Same pattern as the Attendance / LRA pre-registration forms: a live
-// countdown badge in the header, and a "closed" screen once the deadline
+// Same pattern as the Attendance / LRA / JobFair pre-registration forms: a
+// live countdown badge in the header, and a "closed" screen once the deadline
 // passes. Ported from Attendance.tsx.
 
 export const APPLICATION_DEADLINE = "2026-10-10";
@@ -228,9 +228,9 @@ export function getTimeRemaining(): TimeRemaining {
 
 // ── Apps Script endpoint ──────────────────────────────────────────────────────
 // This one URL now handles BOTH the OTP send/verify actions AND the final
-// registration submission — see SraSchedules.gs. It's also passed to
-// EmailVerificationGate as `otpUrl` so the gate hits the same self-contained
-// backend, rather than a separate shared OTP-Service.gs.
+// registration submission — see SraSchedules.gs. It's also passed to the
+// inline email verification widget as `otpUrl` so it hits the same
+// self-contained backend, rather than a separate shared OTP-Service.gs.
 
 export const SRA_SUBMIT_URL =
   "https://script.google.com/macros/s/AKfycbzlCH-FoeIh7OBzFtYiwfOKPTk61-1yT6kepAFIblUKHiF4EFbLWdZihv4towLX76K_uA/exec";
@@ -350,8 +350,19 @@ export function findLikelyDomainTypo(value: string): string | null {
   return null;
 }
 
-export function getSraIssues(form: SraFormState): string[] {
+/**
+ * `emailVerified` is required (not optional) so every call site is forced to
+ * think about whether verification has happened yet — see
+ * SraSchedulesDesign.tsx's inline widget, which is the thing that actually
+ * sets it to true. Mirrors the same change made in JobFairSchedules.tsx /
+ * LraSchedules.tsx.
+ */
+export function getSraIssues(form: SraFormState, emailVerified: boolean): string[] {
   const issues: string[] = [];
+
+  if (!emailVerified) {
+    issues.push("Please verify your email before continuing.");
+  }
 
   if (!form.firstName.trim())  issues.push("First name is required.");
   if (!form.middleName.trim()) issues.push("Middle name is required.");
@@ -438,8 +449,8 @@ const EMPTY_FORM: SraFormState = {
 };
 
 // PII fields stripped before writing the draft to localStorage — same
-// pattern as Jobs.tsx / Attendance.tsx / LraSchedules.tsx. They reset on
-// refresh; everything else autosaves.
+// pattern as Jobs.tsx / Attendance.tsx / LraSchedules.tsx / JobFairSchedules.tsx.
+// They reset on refresh; everything else autosaves.
 const SENSITIVE_FIELDS: (keyof SraFormState)[] = ["email", "contact", "address"];
 
 function loadForm(): SraFormState {
@@ -512,7 +523,7 @@ export default function SraSchedules() {
     }
   }, [submitSuccess]);
 
-  const issues = attempted ? getSraIssues(form) : [];
+  const issues = attempted ? getSraIssues(form, emailVerified) : [];
 
   const updateForm = (patch: Partial<SraFormState>) => {
     setForm(prev => ({ ...prev, ...patch }));
@@ -558,8 +569,10 @@ export default function SraSchedules() {
     setSubmitError(null);
   };
 
-  // Called by EmailVerificationGate once the OTP is confirmed. Fills the
-  // form's email field and unlocks the rest of the form.
+  // Called by the inline email-verification widget once the OTP is
+  // confirmed. Fills the form's email field and flips emailVerified — it no
+  // longer unmounts/replaces anything, since the widget stays mounted inside
+  // the always-visible form now.
   const handleEmailVerified = (email: string, token: string) => {
     setForm(prev => ({ ...prev, email }));
     setVerificationToken(token);
@@ -580,14 +593,14 @@ export default function SraSchedules() {
     setAttempted(true);
     setSubmitError(null);
 
-    // Second guard on top of the UI hiding the form until verified — submit
+    // Second guard on top of the UI blocking submit until verified — submit
     // can't proceed without a verified token no matter how it's triggered.
     if (!emailVerified || !verificationToken) {
       setSubmitError("Please verify your email before submitting.");
       return;
     }
 
-    const validationIssues = getSraIssues(form);
+    const validationIssues = getSraIssues(form, emailVerified);
     if (validationIssues.length > 0) return;
 
     setSubmitting(true);
